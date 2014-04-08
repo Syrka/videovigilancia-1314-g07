@@ -12,7 +12,7 @@ public:
     CaptureBuffer();
     ~CaptureBuffer();
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(
-                QAbstractVideoBuffer::HandleType handleType =
+                QAbstractVideoBuffer::HandleType =
                 QAbstractVideoBuffer::NoHandle) const
     {
         // A través de este método nos preguntan que formatos de

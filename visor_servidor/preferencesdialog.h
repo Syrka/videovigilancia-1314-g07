@@ -12,7 +12,7 @@ class PreferencesDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit PreferencesDialog(/*const QList<QByteArray> &devices,*/ QWidget *parent = 0);
+    explicit PreferencesDialog(QWidget *parent = 0);
     ~PreferencesDialog();
 
 private slots:

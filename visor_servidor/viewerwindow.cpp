@@ -81,10 +81,10 @@ void ViewerWindow::read_image() {
 
     switch(clientState) {
         case 0:
-            if (client->bytesAvailable() >= 4) {
+            if (client->bytesAvailable() >= sizeof(qint32)) {
                 qDebug() << "Recibiendo tamaño.";
-                int size;
-                client->read((char *) &size, 4);
+                qint32 size;
+                client->read((char *) &size, sizeof(qint32));
                 nextImgSize = size;
                 clientState = 1;
             } break;
@@ -94,11 +94,9 @@ void ViewerWindow::read_image() {
                 QBuffer buffer;
                 buffer.setData(client->read(nextImgSize));
 
-                //convert to qimage and call on_frame
                 QImage img;
                 img.load(&buffer, "jpeg");
                 image_slot(img);
-                //on_frame(img); //slot q modifica la imagen
                 clientState = 0;
             }break;
     }

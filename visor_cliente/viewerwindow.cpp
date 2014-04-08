@@ -56,9 +56,6 @@ void ViewerWindow::on_actionAbrir_triggered() {
         else {
             movie = new QMovie(filename);
             ui->stopButton->setEnabled(true);
-            //ui->checkBox->show();
-            //ui->stopButton->show();
-            //ui->startButton->show();
             connect(movie, SIGNAL(updated(const QRect&)),
                     this, SLOT(en_movie_updated()));
             if(ui->checkBox->isChecked()) {
@@ -101,9 +98,6 @@ void ViewerWindow::on_actionAcerca_de_triggered() {
 //
 
 void ViewerWindow::on_actionCapturar_triggered() {
-
-    //ui->stopButton->setEnabled(false);
-    //ui->startButton->setEnabled(false);
 
     ui->checkBox->hide();
     ui->stopButton->hide();
@@ -173,9 +167,9 @@ void ViewerWindow::image_slot(const QImage &image) {
         QByteArray bytes;
         bytes = buffer.buffer();
 
-        int bytes_length = bytes.length();
+        qint32 bytes_length = bytes.length();
         qDebug() << "Tamaño de la imagen: " << bytes.size();
-        tcpSocket->write((const char *)&bytes_length, 4);
+        tcpSocket->write((const char *)&bytes_length, sizeof(qint32));
 
         qDebug() << "Enviando Imagen... ";
         tcpSocket->write(bytes);

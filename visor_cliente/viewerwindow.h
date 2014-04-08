@@ -9,7 +9,6 @@
 #include <QMovie>
 #include <QSettings>
 #include <QCamera>
-//#include <QCameraViewfinder>
 #include <QTime>
 #include <QPainter>
 #include <QTcpSocket>

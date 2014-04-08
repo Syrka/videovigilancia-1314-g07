@@ -56,7 +56,7 @@ private:
     QString ipDir, nPort;
     QTcpServer *tcpServer;
     bool clientState;
-    int nextImgSize;
+    qint32 nextImgSize;
 };
 
 #endif // VIEWERWINDOW_H

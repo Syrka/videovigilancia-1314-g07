@@ -4,7 +4,7 @@
 #include <QSettings>
 #include <QDebug>
 
-PreferencesDialog::PreferencesDialog(/*const QList<QByteArray> &devices,*/ QWidget *parent) :
+PreferencesDialog::PreferencesDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::PreferencesDialog)
 {
