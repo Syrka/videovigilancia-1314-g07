@@ -15,7 +15,7 @@
 #include "dialogabout.h"
 #include "preferencesdialog.h"
 #include "capturebuffer.h"
-#include "networkcapture.h"
+
 
 namespace Ui {
 class ViewerWindow;
