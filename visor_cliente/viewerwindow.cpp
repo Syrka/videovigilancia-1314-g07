@@ -166,6 +166,7 @@ void ViewerWindow::image_slot(const QImage &image) {
 
         QByteArray bytes;
         bytes = buffer.buffer();
+
         ///enviamos la cabecera del protocolo
         qint32 cabecera=1500007;
         qDebug()<<"Enviamos la cabecera";

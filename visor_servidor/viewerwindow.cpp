@@ -79,7 +79,9 @@ void ViewerWindow::new_connection() {
 
 void ViewerWindow::read_image() {
 
-    switch(clientState) {
+    if (client->bytesAvailable() >= sizeof(qint32)&&) {
+
+        switch(clientState) {
         case 0:
             if (client->bytesAvailable() >= sizeof(qint32)) {
                 qDebug() << "Recibiendo tamaño.";
