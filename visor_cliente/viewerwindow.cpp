@@ -166,7 +166,11 @@ void ViewerWindow::image_slot(const QImage &image) {
 
         QByteArray bytes;
         bytes = buffer.buffer();
-
+        ///enviamos la cabecera del protocolo
+        qint32 cabecera=1500007;
+        qDebug()<<"Enviamos la cabecera";
+        tcpSocket->write((const char *)&cabecera, sizeof(qint32));
+        ///enviamos la imagen
         qint32 bytes_length = bytes.length();
         qDebug() << "Tamaño de la imagen: " << bytes.size();
         tcpSocket->write((const char *)&bytes_length, sizeof(qint32));
