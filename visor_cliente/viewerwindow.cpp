@@ -1,5 +1,7 @@
 #include "viewerwindow.h"
 #include "ui_viewerwindow.h"
+#include "QHostInfo"
+#include "svvprotocol.h"
 
 ViewerWindow::ViewerWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -141,44 +143,16 @@ void ViewerWindow::image_slot(const QImage &image) {
 
     QTime time = QTime::currentTime();
     QString timeS = time.toString();
+    svvProtocol sendProtocol (QHostInfo::localHostName(),time); //protocolo para enviar las imagenes de la forma correcta
 
     QPixmap pixmap;
     pixmap = pixmap.fromImage(image);
     QPainter paint(&pixmap);
     paint.setPen(Qt::white);
     paint.drawText(20, 20, timeS);
-
+    QImage image_to_send = image;
     ui->label->setPixmap(pixmap);
-
-    if(tcpSocket->isWritable()){
-
-        //
-        //Enviar imagenes
-        //
-
-        QBuffer buffer;
-        QImageWriter writer(&buffer,"jpeg");
-
-        QImage image_;
-        image_ = pixmap.toImage();
-        writer.setCompression(70);
-        writer.write(image_);
-
-        QByteArray bytes;
-        bytes = buffer.buffer();
-
-        ///enviamos la cabecera del protocolo
-        qint32 cabecera=1500007;
-        qDebug()<<"Enviamos la cabecera";
-        tcpSocket->write((const char *)&cabecera, sizeof(qint32));
-        ///enviamos la imagen
-        qint32 bytes_length = bytes.length();
-        qDebug() << "Tamaño de la imagen: " << bytes.size();
-        tcpSocket->write((const char *)&bytes_length, sizeof(qint32));
-
-        qDebug() << "Enviando Imagen... ";
-        tcpSocket->write(bytes);
-    }
+    sendProtocol.sendPackage(tcpSocket, image_to_send);
 
 }
 

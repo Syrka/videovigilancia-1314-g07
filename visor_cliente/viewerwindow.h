@@ -62,7 +62,7 @@ private:
     PreferencesDialog *preferences;
     QList<QByteArray> devices;
     int numDevice, defaultDevice;
-    QTcpSocket *tcpSocket;
+    QTcpSocket *tcpSocket;   
     QString ipDir, nPort;
 };
 
