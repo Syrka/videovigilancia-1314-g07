@@ -60,7 +60,7 @@ private:
     QTcpServer *tcpServer;
     bool clientState;
     qint32 nextImgSize;
-    qint32 count;
+    qint32 imageNum;
 };
 
 #endif // VIEWERWINDOW_H

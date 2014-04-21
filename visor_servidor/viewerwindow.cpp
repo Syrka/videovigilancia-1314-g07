@@ -18,7 +18,7 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
         ipDir = settings.value("viewer/server/ip", "127.0.0.1").toString();
         nPort = settings.value("viewer/server/port", 15000).toString();
 
-        count = 5;
+        imageNum = 5;
 }
 
 ViewerWindow::~ViewerWindow() {
@@ -48,8 +48,6 @@ void ViewerWindow::on_actionAcerca_de_triggered() {
 void ViewerWindow::image_slot(const QImage &image) {
 
     save_images(image);
-    //count++;
-
     QPixmap pixmap;
     pixmap = pixmap.fromImage(image);
 
@@ -58,9 +56,9 @@ void ViewerWindow::image_slot(const QImage &image) {
 
 void ViewerWindow::save_images(const QImage &image) {
 
-    QString imageName;
-    imageName.setNum(count, 6);
-    imageName = imageName.fill('0', 32-imageName.length()) + imageName;
+    /*QString imageName;
+    imageName.setNum(imageNum, 6);
+    imageName = imageName.fill('0', 6-imageName.length()) + imageName;
 
     QDir dir;
     dir.mkpath(QDir::currentPath() + "/" + imageName.mid(0,2) + "/" +
@@ -69,6 +67,25 @@ void ViewerWindow::save_images(const QImage &image) {
     image.save(QDir::toNativeSeparators(QDir::currentPath() + "/" + imageName.mid(0,2) + "/" +
                                         imageName.mid(3,4) + "/" + imageName.mid(5,6) + "/" +
                                         imageName.mid(5,6) + "/" + imageName + ".jpeg"),"JPEG");
+*/
+    qDebug() << imageNum;
+    QString imageName;
+    imageName = QString("%1.jpeg").arg(imageNum, 16, 0);
+    qDebug() << imageName;
+    qDebug() << imageNum;
+
+    //imageName.setNum(imageNum, 6);
+    //imageName = imageName.fill('0', 6-imageName.length()) + imageName;
+/*
+    QDir dir;
+    dir.mkpath(QDir::currentPath() + "/" + imageName.mid(0,2) + "/" +
+               imageName.mid(3,4) + "/" + imageName.mid(5,6));
+    image.save(QDir::toNativeSeparators(QDir::currentPath() +
+                                        "/" + imageName.mid(0,2) +
+                                        "/" + imageName.mid(3,4) +
+                                        "/" + imageName.mid(5,6) +
+                                        "/" + imageName + ".jpeg"),"JPEG");
+*/
 
 }
 
@@ -118,7 +135,7 @@ void ViewerWindow::read_image() {
                 QImage img;
                 img.load(&buffer, "jpeg");
                 image_slot(img);
-                count++;
+                imageNum++;
                 clientState = 0;
             }break;
     }
