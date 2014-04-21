@@ -17,6 +17,8 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
         QSettings settings;
         ipDir = settings.value("viewer/server/ip", "127.0.0.1").toString();
         nPort = settings.value("viewer/server/port", 15000).toString();
+
+        count = 5;
 }
 
 ViewerWindow::~ViewerWindow() {
@@ -45,10 +47,29 @@ void ViewerWindow::on_actionAcerca_de_triggered() {
 
 void ViewerWindow::image_slot(const QImage &image) {
 
+    save_images(image);
+    //count++;
+
     QPixmap pixmap;
     pixmap = pixmap.fromImage(image);
 
     ui->label->setPixmap(pixmap);
+}
+
+void ViewerWindow::save_images(const QImage &image) {
+
+    QString imageName;
+    imageName.setNum(count, 6);
+    imageName = imageName.fill('0', 32-imageName.length()) + imageName;
+
+    QDir dir;
+    dir.mkpath(QDir::currentPath() + "/" + imageName.mid(0,2) + "/" +
+               imageName.mid(3,4) + "/" + imageName.mid(5,6) + "/" +
+               imageName.mid(5,6));
+    image.save(QDir::toNativeSeparators(QDir::currentPath() + "/" + imageName.mid(0,2) + "/" +
+                                        imageName.mid(3,4) + "/" + imageName.mid(5,6) + "/" +
+                                        imageName.mid(5,6) + "/" + imageName + ".jpeg"),"JPEG");
+
 }
 
 void ViewerWindow::on_actionPrefrencias_triggered() {
@@ -97,6 +118,7 @@ void ViewerWindow::read_image() {
                 QImage img;
                 img.load(&buffer, "jpeg");
                 image_slot(img);
+                count++;
                 clientState = 0;
             }break;
     }

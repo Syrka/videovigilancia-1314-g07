@@ -11,6 +11,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QBuffer>
+#include <QDir>
 
 #include "dialogabout.h"
 #include "preferencesdialog.h"
@@ -46,6 +47,8 @@ private slots:
 
     void read_image();
 
+    void save_images(const QImage&);
+
 
 private:
     Ui::ViewerWindow *ui;
@@ -57,6 +60,7 @@ private:
     QTcpServer *tcpServer;
     bool clientState;
     qint32 nextImgSize;
+    qint32 count;
 };
 
 #endif // VIEWERWINDOW_H
