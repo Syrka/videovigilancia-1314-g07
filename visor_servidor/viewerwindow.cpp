@@ -56,37 +56,26 @@ void ViewerWindow::image_slot(const QImage &image) {
 
 void ViewerWindow::save_images(const QImage &image) {
 
-    /*QString imageName;
-    imageName.setNum(imageNum, 6);
-    imageName = imageName.fill('0', 6-imageName.length()) + imageName;
-
-    QDir dir;
-    dir.mkpath(QDir::currentPath() + "/" + imageName.mid(0,2) + "/" +
-               imageName.mid(3,4) + "/" + imageName.mid(5,6) + "/" +
-               imageName.mid(5,6));
-    image.save(QDir::toNativeSeparators(QDir::currentPath() + "/" + imageName.mid(0,2) + "/" +
-                                        imageName.mid(3,4) + "/" + imageName.mid(5,6) + "/" +
-                                        imageName.mid(5,6) + "/" + imageName + ".jpeg"),"JPEG");
-*/
     qDebug() << imageNum;
-    QString imageName;
-    imageName = QString("%1.jpeg").arg(imageNum, 16, 0);
+    QString imageName, aux;
+    //imageName = QString("%1").arg(imageNum, 32, 16, 0);
+
+    imageName.setNum(imageNum, 16);
     qDebug() << imageName;
-    qDebug() << imageNum;
+    imageName = aux.fill('0', 20 - imageName.length()) + imageName;
+    qDebug() << imageName;
 
-    //imageName.setNum(imageNum, 6);
-    //imageName = imageName.fill('0', 6-imageName.length()) + imageName;
-/*
     QDir dir;
-    dir.mkpath(QDir::currentPath() + "/" + imageName.mid(0,2) + "/" +
-               imageName.mid(3,4) + "/" + imageName.mid(5,6));
-    image.save(QDir::toNativeSeparators(QDir::currentPath() +
-                                        "/" + imageName.mid(0,2) +
-                                        "/" + imageName.mid(3,4) +
-                                        "/" + imageName.mid(5,6) +
-                                        "/" + imageName + ".jpeg"),"JPEG");
-*/
+    dir.mkpath(QDir::currentPath()
+               + "/" + imageName.mid(0,5)
+               + "/" + imageName.mid(5,5)
+               + "/" + imageName.mid(10,5));
 
+    image.save(QDir::toNativeSeparators(QDir::currentPath()
+                                        + "/" + imageName.mid(0,5)
+                                        + "/" + imageName.mid(5,5)
+                                        + "/" + imageName.mid(10,5)
+                                        + "/" + imageName + ".jpeg"),"JPEG");
 }
 
 void ViewerWindow::on_actionPrefrencias_triggered() {
