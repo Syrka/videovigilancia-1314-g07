@@ -19,6 +19,7 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
         nPort = settings.value("viewer/server/port", 15000).toString();
 
         tcpSocket = new QTcpSocket(this);
+        sslSocket = new QSslSocket(this);
 }
 
 ViewerWindow::~ViewerWindow() {
@@ -26,6 +27,7 @@ ViewerWindow::~ViewerWindow() {
     delete movie;
     delete camera;
     delete tcpSocket;
+    delete sslSocket;
 }
 
 void ViewerWindow::on_Quit_clicked() {
@@ -115,7 +117,7 @@ void ViewerWindow::on_actionCapturar_triggered() {
 
     captureBuffer = new CaptureBuffer();
     camera->setViewfinder(captureBuffer);
-    camera->start();
+    //camera->start();
 
     QSettings settings;
     ipDir = settings.value("viewer/server/ip").toString();
@@ -123,7 +125,7 @@ void ViewerWindow::on_actionCapturar_triggered() {
 
     qDebug() << "Intentando conexion";
 
-    tcpSocket->connectToHost(ipDir, nPort.toInt());
+    /*tcpSocket->connectToHost(ipDir, nPort.toInt());
     if (tcpSocket->waitForConnected())
             qDebug() << "Conectado";
 
@@ -131,9 +133,23 @@ void ViewerWindow::on_actionCapturar_triggered() {
              << tcpSocket->state();
     if(tcpSocket->state() != 3 && tcpSocket->state() != 4)
         qDebug() << "Error:"
-                 << tcpSocket->errorString();
+                 << tcpSocket->errorString();*/
+
+    //sslSocket->connectToHost(ipDir, nPort.toInt());
+    sslSocket->connectToHostEncrypted(ipDir, nPort.toInt());
+    sslSocket->ignoreSslErrors();
+
+    //if (sslSocket->waitForConnected())
+            //qDebug() << "Conectado";
+
+    qDebug() << "Estado del Socket:"
+             << sslSocket->state();
+    if(sslSocket->state() != 3 && sslSocket->state() != 4)
+        qDebug() << "Error:"
+                 << sslSocket->errorString();
 
     connect(captureBuffer, SIGNAL(image_signal(QImage)), this, SLOT(image_slot(QImage)));
+    connect(sslSocket, SIGNAL(encrypted()), this, SLOT(connected()));
 
 }
 
@@ -150,7 +166,7 @@ void ViewerWindow::image_slot(const QImage &image) {
 
     ui->label->setPixmap(pixmap);
 
-    if(tcpSocket->isWritable()){
+    if(sslSocket->isWritable()){
 
         //
         //Enviar imagenes
@@ -169,12 +185,17 @@ void ViewerWindow::image_slot(const QImage &image) {
 
         qint32 bytes_length = bytes.length();
         qDebug() << "Tamaño de la imagen: " << bytes.size();
-        tcpSocket->write((const char *)&bytes_length, sizeof(qint32));
+        sslSocket->write((const char *)&bytes_length, sizeof(qint32));
 
         qDebug() << "Enviando Imagen... ";
-        tcpSocket->write(bytes);
+        sslSocket->write(bytes);
     }
 
+}
+
+void ViewerWindow::connected() {
+        qDebug() << "Conectado";
+        camera->start();
 }
 
 void ViewerWindow::on_actionPrefrencias_triggered() {

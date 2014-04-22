@@ -14,6 +14,7 @@
 #include <QTcpSocket>
 #include <QBuffer>
 #include <QImageWriter>
+#include <QSslSocket>
 
 #include "dialogabout.h"
 #include "preferencesdialog.h"
@@ -54,6 +55,8 @@ private slots:
 
     void on_actionPrefrencias_triggered();
 
+    void connected();
+
 private:
     Ui::ViewerWindow *ui;
     QMovie *movie;
@@ -63,7 +66,9 @@ private:
     QList<QByteArray> devices;
     int numDevice, defaultDevice;
     QTcpSocket *tcpSocket;
+    QSslSocket *sslSocket;
     QString ipDir, nPort;
+    QSettings *settings;
 };
 
 #endif // VIEWERWINDOW_H

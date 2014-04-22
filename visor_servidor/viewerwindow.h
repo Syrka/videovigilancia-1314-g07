@@ -12,10 +12,12 @@
 #include <QTcpSocket>
 #include <QBuffer>
 #include <QDir>
+#include <QSslSocket>
 
 #include "dialogabout.h"
 #include "preferencesdialog.h"
 #include "capturebuffer.h"
+#include "server.h"
 
 
 namespace Ui {
@@ -55,12 +57,16 @@ private:
     QCamera *camera;
     CaptureBuffer *captureBuffer;
     PreferencesDialog *preferences;
-    QTcpSocket *client;
+    //QTcpSocket *client;
     QString ipDir, nPort;
-    QTcpServer *tcpServer;
+    //QTcpServer *tcpServer;
     bool clientState;
     qint32 nextImgSize;
     uint imageNum;
+    QSslSocket *client;
+    Server *server;
+    QString key;
+    QString certificate;
 };
 
 #endif // VIEWERWINDOW_H

@@ -7,7 +7,8 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
     camera(NULL),
     captureBuffer(NULL),
     client(NULL),
-    tcpServer(NULL){
+    /*tcpServer(NULL)*/
+    server(NULL) {
 
         ui->setupUi(this);
         ui->checkBox->hide();
@@ -18,17 +19,20 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
         ipDir = settings.value("viewer/server/ip", "127.0.0.1").toString();
         nPort = settings.value("viewer/server/port", 15000).toString();
 
-        imageNum = 5;
+        key = settings.value("viewer/key").toString();
+        certificate = settings.value("viewer/certificate").toString();
+
+        imageNum = 0;
 }
 
 ViewerWindow::~ViewerWindow() {
     delete ui;
     delete camera;
     delete captureBuffer;
-    delete client;
+    //delete client;
 
-    if(tcpServer != NULL) {
-        delete tcpServer;
+    if(server != NULL) {
+        delete server;
     }
 }
 
@@ -88,20 +92,29 @@ void ViewerWindow::on_actionNetwork_capture_triggered() {
 
     qDebug() << "Capturando";
 
-    tcpServer = new QTcpServer(this);
-    tcpServer->listen(QHostAddress::Any, 15000);
+    //tcpServer = new QTcpServer(this);
+    //tcpServer->listen(QHostAddress::Any, 15000);
 
-    connect(tcpServer, SIGNAL(newConnection()), this, SLOT(new_connection()));
+    server = new Server(this);
+    server->listen(QHostAddress::Any, 15000);
+
+    connect(server, SIGNAL(signal()), this, SLOT(new_connection()));
 }
 
 void ViewerWindow::new_connection() {
 
+    /*
     while(tcpServer->hasPendingConnections()) {
         client = tcpServer->nextPendingConnection();
         connect(client, SIGNAL(readyRead()), this, SLOT(read_image()));
         clientState = 0;
         nextImgSize = 0;
-    }
+    }*/
+
+    client = dynamic_cast<QSslSocket *>(server->nextPendingConnection());
+    connect(client, SIGNAL(readyRead()), this, SLOT(read_image()));
+    clientState = 0;
+    nextImgSize = 0;
 }
 
 void ViewerWindow::read_image() {
