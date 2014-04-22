@@ -28,7 +28,6 @@ void Server::incomingConnection(qintptr socketDescriptor) {
         if(file_key.open(QIODevice::ReadOnly)) {
             key = file_key.readAll();
             file_key.close();
-            //qDebug()<<key;
         }
         else {
             qDebug() <<"Error key: "<< file_key.errorString();
@@ -46,8 +45,8 @@ void Server::incomingConnection(qintptr socketDescriptor) {
 
         QSslKey ssl_key(key,QSsl::Rsa);
         QSslCertificate ssl_cert(certificate);
-        qDebug()<<ssl_key ;
-        qDebug()<<ssl_cert;
+        qDebug() << ssl_key ;
+        qDebug() << ssl_cert;
         socket->setPrivateKey(ssl_key);
         socket->setLocalCertificate(ssl_cert);
 

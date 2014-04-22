@@ -15,10 +15,14 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
         numDevice = defaultDevice;
         devices = QCamera::availableDevices();
 
-        ipDir = settings.value("viewer/server/ip", "127.0.0.1").toString();
-        nPort = settings.value("viewer/server/port", 15000).toString();
+        //ipDir = settings.value("viewer/server/ip", "127.0.0.1").toString();
+        //nPort = settings.value("viewer/server/port", 15000).toString();
 
-        tcpSocket = new QTcpSocket(this);
+        settings.setValue("viewer/server/ip", "127.0.0.1");
+        settings.setValue("viewer/server/port", 15000);
+
+
+        //tcpSocket = new QTcpSocket(this);
         sslSocket = new QSslSocket(this);
 }
 
@@ -26,7 +30,7 @@ ViewerWindow::~ViewerWindow() {
     delete ui;
     delete movie;
     delete camera;
-    delete tcpSocket;
+    //delete tcpSocket;
     delete sslSocket;
 }
 
@@ -117,7 +121,6 @@ void ViewerWindow::on_actionCapturar_triggered() {
 
     captureBuffer = new CaptureBuffer();
     camera->setViewfinder(captureBuffer);
-    //camera->start();
 
     QSettings settings;
     ipDir = settings.value("viewer/server/ip").toString();
@@ -135,7 +138,6 @@ void ViewerWindow::on_actionCapturar_triggered() {
         qDebug() << "Error:"
                  << tcpSocket->errorString();*/
 
-    //sslSocket->connectToHost(ipDir, nPort.toInt());
     sslSocket->connectToHostEncrypted(ipDir, nPort.toInt());
     sslSocket->ignoreSslErrors();
 

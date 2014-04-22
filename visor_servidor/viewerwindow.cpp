@@ -91,15 +91,15 @@ void ViewerWindow::on_actionPrefrencias_triggered() {
 void ViewerWindow::on_actionNetwork_capture_triggered() {
 
     QSettings settings;
-    int nPort_ = settings.value("viewer/server/port").toInt();
+    nPort = settings.value("viewer/server/port").toString();
 
     qDebug() << "Capturando";
 
     //tcpServer = new QTcpServer(this);
-    //tcpServer->listen(QHostAddress::Any, nPort_);
+    //tcpServer->listen(QHostAddress::Any, nPort.toInt());
 
     server = new Server(this);
-    server->listen(QHostAddress::Any, nPort_);
+    server->listen(QHostAddress::Any, nPort.toInt());
 
     connect(server, SIGNAL(signal()), this, SLOT(new_connection()));
 }
