@@ -141,7 +141,7 @@ void ViewerWindow::on_actionCapturar_triggered() {
 
 void ViewerWindow::image_slot(const QImage &image) {
 
-    QTime time = QTime::currentTime();
+    QDateTime time = QDateTime::currentDateTime();
     QString timeS = time.toString();
     svvProtocol sendProtocol (QHostInfo::localHostName(),time); //protocolo para enviar las imagenes de la forma correcta
 
