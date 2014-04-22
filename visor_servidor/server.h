@@ -5,6 +5,7 @@
 #include <QSslSocket>
 #include <QFile>
 #include <QSslKey>
+#include <QSettings>
 
 class Server : public QTcpServer
 {
@@ -24,10 +25,12 @@ public slots:
 
     void disconnect();
 
-    void stepToMain();
+    void signal_to_viewer();
 
 private:
     QSslSocket *socket;
+    QByteArray key;
+    QByteArray certificate;
 };
 
 #endif // SERVER_H

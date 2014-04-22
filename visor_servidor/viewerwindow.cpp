@@ -16,11 +16,11 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
         ui->startButton->hide();
 
         QSettings settings;
-        ipDir = settings.value("viewer/server/ip", "127.0.0.1").toString();
-        nPort = settings.value("viewer/server/port", 15000).toString();
+        //ipDir = settings.value("viewer/server/ip", "127.0.0.1").toString();
+        //nPort = settings.value("viewer/server/port", 15000).toString();
 
-        key = settings.value("viewer/key").toString();
-        certificate = settings.value("viewer/certificate").toString();
+        settings.setValue("viewer/server/ip", "127.0.0.1");
+        settings.setValue("viewer/server/port", 15000);
 
         imageNum = 0;
 }
@@ -29,7 +29,7 @@ ViewerWindow::~ViewerWindow() {
     delete ui;
     delete camera;
     delete captureBuffer;
-    //delete client;
+    delete client;
 
     if(server != NULL) {
         delete server;
@@ -90,13 +90,16 @@ void ViewerWindow::on_actionPrefrencias_triggered() {
 
 void ViewerWindow::on_actionNetwork_capture_triggered() {
 
+    QSettings settings;
+    int nPort_ = settings.value("viewer/server/port").toInt();
+
     qDebug() << "Capturando";
 
     //tcpServer = new QTcpServer(this);
-    //tcpServer->listen(QHostAddress::Any, 15000);
+    //tcpServer->listen(QHostAddress::Any, nPort_);
 
     server = new Server(this);
-    server->listen(QHostAddress::Any, 15000);
+    server->listen(QHostAddress::Any, nPort_);
 
     connect(server, SIGNAL(signal()), this, SLOT(new_connection()));
 }
@@ -139,7 +142,6 @@ void ViewerWindow::read_image() {
                 image_slot(img);
                 imageNum++;
                 clientState = 0;
-            }break;
+            } break;
     }
-
 }

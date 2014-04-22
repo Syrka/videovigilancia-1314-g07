@@ -65,8 +65,6 @@ private:
     uint imageNum;
     QSslSocket *client;
     Server *server;
-    QString key;
-    QString certificate;
 };
 
 #endif // VIEWERWINDOW_H
