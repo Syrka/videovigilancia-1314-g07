@@ -31,6 +31,7 @@ private:
     QSslSocket *socket;
     QByteArray key;
     QByteArray certificate;
+    QSettings *settings;
 };
 
 #endif // SERVER_H

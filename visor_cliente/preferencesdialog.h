@@ -2,6 +2,7 @@
 #define PREFERENCESDIALOG_H
 
 #include <QDialog>
+#include <QSettings>
 
 namespace Ui {
 class PreferencesDialog;
@@ -24,6 +25,7 @@ private:
     Ui::PreferencesDialog *ui;
     int numDevice;
     QString ipDirP, nPortP;
+    QSettings *settings;
 };
 
 #endif // PREFERENCESDIALOG_H

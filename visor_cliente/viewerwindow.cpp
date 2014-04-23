@@ -9,18 +9,14 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
         ui->setupUi(this);
         ui->stopButton->setEnabled(false);
 
-        QSettings settings;
-        ui->checkBox->setChecked(settings.value("viewer/checkBox", true).toBool());
-        defaultDevice = settings.value("viewer/device", 0).toInt();
+        settings = new QSettings;
+        ui->checkBox->setChecked(settings->value("viewer/checkBox", true).toBool());
+        defaultDevice = settings->value("viewer/device", 0).toInt();
         numDevice = defaultDevice;
         devices = QCamera::availableDevices();
 
-        //ipDir = settings.value("viewer/server/ip", "127.0.0.1").toString();
-        //nPort = settings.value("viewer/server/port", 15000).toString();
-
-        settings.setValue("viewer/server/ip", "127.0.0.1");
-        settings.setValue("viewer/server/port", 15000);
-
+        settings->setValue("viewer/server/ip", "127.0.0.1");
+        settings->setValue("viewer/server/port", 15000);
 
         //tcpSocket = new QTcpSocket(this);
         sslSocket = new QSslSocket(this);
@@ -32,6 +28,7 @@ ViewerWindow::~ViewerWindow() {
     delete camera;
     //delete tcpSocket;
     delete sslSocket;
+    delete settings;
 }
 
 void ViewerWindow::on_Quit_clicked() {
@@ -90,8 +87,8 @@ void ViewerWindow::en_movie_updated() {
 }
 
 void ViewerWindow::on_checkBox_stateChanged() {
-    QSettings settings;
-    settings.setValue("viewer/checkBox", ui->checkBox->isChecked());
+
+    settings->setValue("viewer/checkBox", ui->checkBox->isChecked());
 }
 
 void ViewerWindow::on_actionAcerca_de_triggered() {
@@ -122,9 +119,8 @@ void ViewerWindow::on_actionCapturar_triggered() {
     captureBuffer = new CaptureBuffer();
     camera->setViewfinder(captureBuffer);
 
-    QSettings settings;
-    ipDir = settings.value("viewer/server/ip").toString();
-    nPort = settings.value("viewer/server/port").toString();
+    ipDir = settings->value("viewer/server/ip").toString();
+    nPort = settings->value("viewer/server/port").toString();
 
     qDebug() << "Intentando conexion";
 
@@ -205,8 +201,7 @@ void ViewerWindow::on_actionPrefrencias_triggered() {
     preferences = new PreferencesDialog(devices);
     preferences->exec();
 
-    QSettings settings;
-    numDevice = settings.value("viewer/device").toInt();
+    numDevice = settings->value("viewer/device").toInt();
 
     if(camera != NULL) {
         camera->stop();

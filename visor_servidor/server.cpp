@@ -4,14 +4,15 @@ Server::Server(QObject *parent) : QTcpServer(parent) {
 
     socket = new QSslSocket;
 
-    QSettings settings;
-    settings.setValue("viewer/key", "SSL/server.key");
-    settings.setValue("viewer/certificate", "SSL/server.crt");
+    settings = new QSettings;
+    settings->setValue("viewer/key", "SSL/server.key");
+    settings->setValue("viewer/certificate", "SSL/server.crt");
 }
 
 Server::~Server() {
 
     delete socket;
+    delete settings;
 }
 
 void Server::incomingConnection(qintptr socketDescriptor) {
@@ -19,9 +20,8 @@ void Server::incomingConnection(qintptr socketDescriptor) {
     if(socket->setSocketDescriptor(socketDescriptor)) {
         addPendingConnection(socket);
 
-        QSettings settings;
-        key = settings.value("viewer/key").toByteArray();
-        certificate = settings.value("viewer/certificate").toByteArray();
+        key = settings->value("viewer/key").toByteArray();
+        certificate = settings->value("viewer/certificate").toByteArray();
 
         QFile file_key(key);
 
@@ -37,7 +37,6 @@ void Server::incomingConnection(qintptr socketDescriptor) {
         if(file_cert.open(QIODevice::ReadOnly)) {
              certificate = file_cert.readAll();
              file_cert.close();
-            // qDebug()<<cert;
         }
         else {
             qDebug() <<"Error cert: "<< file_cert.errorString();

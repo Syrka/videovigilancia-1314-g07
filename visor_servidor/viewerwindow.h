@@ -8,8 +8,8 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QCamera>
-#include <QTcpServer>
-#include <QTcpSocket>
+//#include <QTcpServer>
+//#include <QTcpSocket>
 #include <QBuffer>
 #include <QDir>
 #include <QSslSocket>
@@ -65,6 +65,7 @@ private:
     uint imageNum;
     QSslSocket *client;
     Server *server;
+    QSettings *settings;
 };
 
 #endif // VIEWERWINDOW_H

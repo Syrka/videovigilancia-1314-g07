@@ -19,9 +19,9 @@ PreferencesDialog::PreferencesDialog(const QList<QByteArray> &devices, QWidget *
         num++;
     }
 
-    QSettings settings;
-    ipDirP = settings.value("viewer/server/ip").toString();
-    nPortP = settings.value("viewer/server/port").toString();
+    settings = new QSettings;
+    ipDirP = settings->value("viewer/server/ip").toString();
+    nPortP = settings->value("viewer/server/port").toString();
 
     ui->lineEditIp->setText(ipDirP);
     ui->lineEditPort->setText(nPortP);
@@ -29,16 +29,16 @@ PreferencesDialog::PreferencesDialog(const QList<QByteArray> &devices, QWidget *
 
 PreferencesDialog::~PreferencesDialog() {
     delete ui;
+    delete settings;
 }
 
 void PreferencesDialog::on_okButton_clicked() {
 
     numDevice = ui->comboCamOptsBox->currentIndex();
-    QSettings settings;
-    settings.setValue("viewer/device", numDevice);
+    settings->setValue("viewer/device", numDevice);
 
-    settings.setValue("viewer/server/ip", ui->lineEditIp->text());
-    settings.setValue("viewer/server/port", ui->lineEditPort->text());
+    settings->setValue("viewer/server/ip", ui->lineEditIp->text());
+    settings->setValue("viewer/server/port", ui->lineEditPort->text());
 
     close();
 }
