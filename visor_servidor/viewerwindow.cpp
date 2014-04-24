@@ -59,48 +59,31 @@ void ViewerWindow::on_actionPrefrencias_triggered() {
 
 void ViewerWindow::on_actionNetwork_capture_triggered() {
 
-    qDebug() << "Capturando";
+
 
     tcpServer = new QTcpServer(this);
     tcpServer->listen(QHostAddress::Any, 15000);
 
     connect(tcpServer, SIGNAL(newConnection()), this, SLOT(new_connection()));
+    qDebug() << "Capturando";
 }
 
 void ViewerWindow::new_connection() {
 
     while(tcpServer->hasPendingConnections()) {
+        qDebug() << "Nuevo cliente";
         client = tcpServer->nextPendingConnection();
+        qDebug() << "Nuevo cliente";
         connect(client, SIGNAL(readyRead()), this, SLOT(read_image()));
-        clientState = 0;
-        nextImgSize = 0;
     }
 }
 
 void ViewerWindow::read_image() {
-
-    if (client->bytesAvailable() >= sizeof(qint32)&&) {
-
-        switch(clientState) {
-        case 0:
-            if (client->bytesAvailable() >= sizeof(qint32)) {
-                qDebug() << "Recibiendo tamaño.";
-                qint32 size;
-                client->read((char *) &size, sizeof(qint32));
-                nextImgSize = size;
-                clientState = 1;
-            } break;
-        case 1:
-            if (client->bytesAvailable() >= nextImgSize) {
-                qDebug() << "Recibiendo imagen...";
-                QBuffer buffer;
-                buffer.setData(client->read(nextImgSize));
-
-                QImage img;
-                img.load(&buffer, "jpeg");
-                image_slot(img);
-                clientState = 0;
-            }break;
-    }
+    svvProtocol emitter;
+    QImage img=emitter.recibePackage(client);
+    //emitter.getIdCamera();
+    //emitter.getTimeStamp();
+    //
+    image_slot(img);
 
 }

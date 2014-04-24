@@ -126,8 +126,8 @@ void ViewerWindow::on_actionCapturar_triggered() {
     qDebug() << "Intentando conexion";
 
     tcpSocket->connectToHost(ipDir, nPort.toInt());
-    if (tcpSocket->waitForConnected())
-            qDebug() << "Conectado";
+    //if (tcpSocket->waitForConnected())
+    //        qDebug() << "Conectado";
 
     qDebug() << "Estado del Socket:"
              << tcpSocket->state();

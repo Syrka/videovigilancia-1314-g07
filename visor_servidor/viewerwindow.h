@@ -15,6 +15,7 @@
 #include "dialogabout.h"
 #include "preferencesdialog.h"
 #include "capturebuffer.h"
+#include "svvprotocol.h"
 
 
 namespace Ui {
