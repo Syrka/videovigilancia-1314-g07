@@ -70,8 +70,7 @@ void ViewerWindow::on_actionNetwork_capture_triggered() {
 
 void ViewerWindow::new_connection() {
 
-    while(tcpServer->hasPendingConnections()) {
-        qDebug() << "Nuevo cliente";
+    if(tcpServer->hasPendingConnections()) {
         client = tcpServer->nextPendingConnection();
         qDebug() << "Nuevo cliente";
         connect(client, SIGNAL(readyRead()), this, SLOT(read_image()));

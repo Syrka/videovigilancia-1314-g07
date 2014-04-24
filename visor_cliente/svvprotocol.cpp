@@ -33,21 +33,21 @@ bool svvProtocol::sendPackage(QTcpSocket *receptor, QImage &image){ //devuelve t
 
         ///enviamos la cabecera del protocolo
         //idprotocol
-        receptor->write( qToLittleEndian((const char *)&idprotocol_),  sizeof(qint32));//tamaño id protocolo
+        receptor->write( qToLittleEndian((const char *)&idprotocol_),  sizeof(quint32));//tamaño id protocolo
         //idcamera
-        qint32 size_idcamera = idcamera_.size();
-        receptor->write( qToLittleEndian((const char *)&size_idcamera), sizeof(qint32));  //tamaño id camara
+        quint32 size_idcamera = idcamera_.size();
+        receptor->write( qToLittleEndian((const char *)&size_idcamera), sizeof(quint32));  //tamaño id camara
         receptor->write( qToLittleEndian((const char *)&idcamera_), size_idcamera);  //id camara
         //timestamp
         //QString timestamp = timestamp_.to;
-        qint32 size_timestamp = sizeof(timestamp_);
-        receptor->write( qToLittleEndian((const char*)&size_timestamp), sizeof(qint32));//tamaño timestamp
+        quint32 size_timestamp = sizeof(timestamp_);
+        receptor->write( qToLittleEndian((const char*)&size_timestamp), sizeof(quint32));//tamaño timestamp
         receptor->write( qToLittleEndian((const char*)&timestamp_), size_timestamp);//timestamp
 
         ///enviamos la imagen
-        qint32 size_bytes_image = bytes_image.length();
+        quint32 size_bytes_image = bytes_image.length();
         qDebug() << "Tamaño de la imagen: " << bytes_image.size();
-        receptor->write( qToLittleEndian((const char*)&size_bytes_image), sizeof(qint32));//tamaño image
+        receptor->write( qToLittleEndian((const char*)&size_bytes_image), sizeof(quint32));//tamaño image
         qDebug() << "Enviando Imagen... ";
         receptor->write( qToLittleEndian(bytes_image), size_bytes_image);                  //image
         return true;
@@ -61,14 +61,15 @@ bool svvProtocol::sendPackage(QTcpSocket *receptor, QImage &image){ //devuelve t
 //se guarda lo que se recibe en una imagen y se almacena el timestamp y demas info
 QImage svvProtocol::recibePackage(QTcpSocket *emitter){
     QImage image;
-    qint32 size_idprotocol;
+    quint32 idprotocol;
     QByteArray bytes_toread;
+    qDebug()<<"Recibiendo paquete svvP";
     while(emitter->isReadable()){
         qDebug() <<state_;
         switch(state_){
 //        case 0://si 0→ espera tamaño cabecera
-//            if(emitter->bytesAvailable() >= sizeof(qint32)){
-//                 bytes_toread = qFromLittleEndian( emitter->read(sizeof(qint32)));
+//            if(emitter->bytesAvailable() >= sizeof(quint32)){
+//                 bytes_toread = qFromLittleEndian( emitter->read(sizeof(quint32)));
 //                 size_idprotocol = bytes_toread.toInt();
 //                 qDebug()<<size_idprotocol<<" == "<<size_idprotocol_;
 //                if (size_idprotocol == size_idprotocol_){ //si viene la cabecera correcta
@@ -81,10 +82,12 @@ QImage svvProtocol::recibePackage(QTcpSocket *emitter){
 //                }
 //            }
 //            break;
-        case 1://si 1→ espera qint32 de cabecera
-            if(emitter->bytesAvailable() >= sizeof(qint32)){
-                bytes_toread =  qFromLittleEndian( emitter->read(size_idprotocol));
-                qint32 idprotocol= bytes_toread.toInt();
+        case 1://si 1→ espera quint32 de cabecera
+            qDebug()<<"Recibiendo cabecera";
+            if(emitter->bytesAvailable() >= sizeof(quint32)){
+                bytes_toread =  qFromLittleEndian( emitter->read(sizeof(quint32)));
+                idprotocol = bytes_toread.toInt();
+                qDebug()<<idprotocol <<" = "<<idprotocol_<<"?";
                 if(idprotocol == idprotocol_){
                     state_++;
                 }
@@ -96,39 +99,47 @@ QImage svvProtocol::recibePackage(QTcpSocket *emitter){
             }
             break;
         case 2://si 2→ espera tamaño idcamera
-            if(emitter->bytesAvailable() >= sizeof(qint32)){
-                bytes_toread = qFromLittleEndian( emitter->read(sizeof(qint32)));
+            qDebug()<<"Recibiendo tamaño idcamera";
+            if(emitter->bytesAvailable() >= sizeof(quint32)){
+                bytes_toread = qFromLittleEndian( emitter->read(sizeof(quint32)));
                 size_idcamera_ = bytes_toread.toInt();
                 state_++;
             }
             break;
         case 3://si 3→ espera Qstring de idcamera
+            qDebug()<<"Recibiendo idcamera";
             if(emitter->bytesAvailable() >= size_idcamera_){
                 idcamera_ = qFromLittleEndian( emitter->read(size_idcamera_));
+                qDebug()<<idcamera_;
                 state_++;
             }
             break;
         case 4://si 4→ espera tamaño timestamp
-            if(emitter->bytesAvailable() >= sizeof(qint32)){
-                bytes_toread = qFromLittleEndian( emitter->read(sizeof(qint32)));
+            qDebug()<<"Recibiendo tamaño timestamp";
+            if(emitter->bytesAvailable() >= sizeof(quint32)){
+                bytes_toread = qFromLittleEndian( emitter->read(sizeof(quint32)));
                 size_timestamp_ = bytes_toread.toInt();
                 state_++;
             }
             break;
         case 5://si 5→ espera QDateTime en QString timestamp
+            qDebug()<<"Recibiendo timestamp";
             if(emitter->bytesAvailable() >= size_timestamp_){
                 timestamp_.fromString(qFromLittleEndian( emitter->read(size_timestamp_)));
+                qDebug()<<timestamp_.toString();
                 state_++;
             }
             break;
         case 6://si 6→ espera tamaño image
-            if(emitter->bytesAvailable() >= sizeof(qint32)){
-                bytes_toread = qFromLittleEndian( emitter->read(sizeof(qint32)));
+            qDebug()<<"Recibiendo tamaño imagen";
+            if(emitter->bytesAvailable() >= sizeof(quint32)){
+                bytes_toread = qFromLittleEndian( emitter->read(sizeof(quint32)));
                 size_image_ = bytes_toread.toInt();
                 state_++;
             }
             break;
         case 7://si 7→ espera QImage image
+            qDebug()<<"Recibiendo imagen";
             if(emitter->bytesAvailable() >= size_image_){
                 QBuffer buffer;
                 buffer.setData(emitter->read(size_image_));
