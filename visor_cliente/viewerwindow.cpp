@@ -143,7 +143,7 @@ void ViewerWindow::image_slot(const QImage &image) {
 
     QDateTime time = QDateTime::currentDateTime();
     QString timeS = time.toString();
-    svvProtocol sendProtocol (QHostInfo::localHostName(),time); //protocolo para enviar las imagenes de la forma correcta
+    svvProtocol sendProtocol ("Host",time); //protocolo para enviar las imagenes de la forma correcta
 
     QPixmap pixmap;
     pixmap = pixmap.fromImage(image);

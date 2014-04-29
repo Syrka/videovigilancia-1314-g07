@@ -36,13 +36,15 @@ bool svvProtocol::sendPackage(QTcpSocket *receptor, QImage &image){ //devuelve t
         receptor->write( qToLittleEndian((const char *)&idprotocol_),  sizeof(quint32));//tamaño id protocolo
         //idcamera
         quint32 size_idcamera = idcamera_.size();
+        qDebug()<<"tamaño idcamera: "<<size_idcamera;
+        QString idcamera_bytes;
         receptor->write( qToLittleEndian((const char *)&size_idcamera), sizeof(quint32));  //tamaño id camara
-        receptor->write( qToLittleEndian((const char *)&idcamera_), size_idcamera);  //id camara
+        receptor->write( qToLittleEndian((char *)&idcamera_), size_idcamera);  //id camara
         //timestamp
-        //QString timestamp = timestamp_.to;
-        quint32 size_timestamp = sizeof(timestamp_);
+        QString time_string = timestamp_.toString();
+        quint32 size_timestamp = time_string.size();
         receptor->write( qToLittleEndian((const char*)&size_timestamp), sizeof(quint32));//tamaño timestamp
-        receptor->write( qToLittleEndian((const char*)&timestamp_), size_timestamp);//timestamp
+        receptor->write( qToLittleEndian((const char*)&time_string), size_timestamp);//timestamp
 
         ///enviamos la imagen
         quint32 size_bytes_image = bytes_image.length();
@@ -65,51 +67,41 @@ QImage svvProtocol::recibePackage(QTcpSocket *emitter){
     QByteArray bytes_toread;
     qDebug()<<"Recibiendo paquete svvP";
     while(emitter->isReadable()){
-        qDebug() <<state_;
+        qDebug() <<"estado→"<<state_;
         switch(state_){
-//        case 0://si 0→ espera tamaño cabecera
-//            if(emitter->bytesAvailable() >= sizeof(quint32)){
-//                 bytes_toread = qFromLittleEndian( emitter->read(sizeof(quint32)));
-//                 size_idprotocol = bytes_toread.toInt();
-//                 qDebug()<<size_idprotocol<<" == "<<size_idprotocol_;
-//                if (size_idprotocol == size_idprotocol_){ //si viene la cabecera correcta
-//                    state_++;
-//                }
-//                else{//si la cabecera no es correcta se descarta la conexion
-//                    emitter->abort();
-//                    QMessageBox::information(0,"Conexion abortada","Por cuestiones de seguridad se ha abortado una conexion entrante");
-//                    return image;
-//                }
-//            }
-//            break;
         case 1://si 1→ espera quint32 de cabecera
             qDebug()<<"Recibiendo cabecera";
             if(emitter->bytesAvailable() >= sizeof(quint32)){
-                bytes_toread =  qFromLittleEndian( emitter->read(sizeof(quint32)));
-                idprotocol = bytes_toread.toInt();
-                qDebug()<<idprotocol <<" = "<<idprotocol_<<"?";
+                emitter->read((char *)&idprotocol,sizeof(quint32));
+                idprotocol = qFromLittleEndian(idprotocol);
+                qDebug()<< idprotocol <<" = "<<idprotocol_<<"?";
                 if(idprotocol == idprotocol_){
                     state_++;
                 }
                 else{
                     emitter->abort();
                     QMessageBox::information(0,"Conexion abortada","Por cuestiones de seguridad se ha abortado una conexion entrante");
-                    return image;
+                   return image;
                 }
             }
             break;
         case 2://si 2→ espera tamaño idcamera
             qDebug()<<"Recibiendo tamaño idcamera";
             if(emitter->bytesAvailable() >= sizeof(quint32)){
-                bytes_toread = qFromLittleEndian( emitter->read(sizeof(quint32)));
-                size_idcamera_ = bytes_toread.toInt();
+                emitter->read((char*)&size_idcamera_,sizeof(quint32));
+                size_idcamera_ = qFromLittleEndian (size_idcamera_);
+                qDebug()<<"\t→"<<size_idcamera_;
                 state_++;
             }
             break;
         case 3://si 3→ espera Qstring de idcamera
             qDebug()<<"Recibiendo idcamera";
             if(emitter->bytesAvailable() >= size_idcamera_){
-                idcamera_ = qFromLittleEndian( emitter->read(size_idcamera_));
+                bytes_toread = emitter->read(size_idcamera_);
+                bytes_toread = qFromLittleEndian(bytes_toread);
+                for(int i=0; i<size_idcamera_; i++){
+                    idcamera_ += bytes_toread[i];
+                }
                 qDebug()<<idcamera_;
                 state_++;
             }
@@ -117,15 +109,22 @@ QImage svvProtocol::recibePackage(QTcpSocket *emitter){
         case 4://si 4→ espera tamaño timestamp
             qDebug()<<"Recibiendo tamaño timestamp";
             if(emitter->bytesAvailable() >= sizeof(quint32)){
-                bytes_toread = qFromLittleEndian( emitter->read(sizeof(quint32)));
-                size_timestamp_ = bytes_toread.toInt();
+                emitter->read((char*)&size_timestamp_, sizeof(quint32));
+                size_timestamp_ = qFromLittleEndian(size_timestamp_);
                 state_++;
             }
             break;
         case 5://si 5→ espera QDateTime en QString timestamp
             qDebug()<<"Recibiendo timestamp";
             if(emitter->bytesAvailable() >= size_timestamp_){
-                timestamp_.fromString(qFromLittleEndian( emitter->read(size_timestamp_)));
+                QString time_string;
+                bytes_toread = emitter->read(size_timestamp_);
+                bytes_toread = qFromLittleEndian(bytes_toread);
+                for(int i=0;i<size_timestamp_;i++){
+                    time_string += bytes_toread[i];
+                }
+                timestamp_.fromString(time_string);
+                qDebug()<<time_string;
                 qDebug()<<timestamp_.toString();
                 state_++;
             }
@@ -133,8 +132,8 @@ QImage svvProtocol::recibePackage(QTcpSocket *emitter){
         case 6://si 6→ espera tamaño image
             qDebug()<<"Recibiendo tamaño imagen";
             if(emitter->bytesAvailable() >= sizeof(quint32)){
-                bytes_toread = qFromLittleEndian( emitter->read(sizeof(quint32)));
-                size_image_ = bytes_toread.toInt();
+                emitter->read((char *)&size_image_, sizeof(quint32));
+                size_image_ = qFromLittleEndian(size_image_);
                 state_++;
             }
             break;
