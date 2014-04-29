@@ -1,5 +1,6 @@
 #include "viewerwindow.h"
 #include "ui_viewerwindow.h"
+//#include <QHostInfo>
 
 ViewerWindow::ViewerWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -18,7 +19,6 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
         settings->setValue("viewer/server/ip", "127.0.0.1");
         settings->setValue("viewer/server/port", 15000);
 
-        //tcpSocket = new QTcpSocket(this);
         sslSocket = new QSslSocket(this);
 }
 
@@ -124,21 +124,8 @@ void ViewerWindow::on_actionCapturar_triggered() {
 
     qDebug() << "Intentando conexion";
 
-    /*tcpSocket->connectToHost(ipDir, nPort.toInt());
-    if (tcpSocket->waitForConnected())
-            qDebug() << "Conectado";
-
-    qDebug() << "Estado del Socket:"
-             << tcpSocket->state();
-    if(tcpSocket->state() != 3 && tcpSocket->state() != 4)
-        qDebug() << "Error:"
-                 << tcpSocket->errorString();*/
-
     sslSocket->connectToHostEncrypted(ipDir, nPort.toInt());
     sslSocket->ignoreSslErrors();
-
-    //if (sslSocket->waitForConnected())
-            //qDebug() << "Conectado";
 
     qDebug() << "Estado del Socket:"
              << sslSocket->state();
@@ -153,18 +140,22 @@ void ViewerWindow::on_actionCapturar_triggered() {
 
 void ViewerWindow::image_slot(const QImage &image) {
 
-    QTime time = QTime::currentTime();
+    QDateTime time = QDateTime::currentDateTime();
     QString timeS = time.toString();
+
+    svvProtocol sendProtocol ("Host",time); //protocolo para enviar las imagenes de la forma correcta
 
     QPixmap pixmap;
     pixmap = pixmap.fromImage(image);
+
     QPainter paint(&pixmap);
     paint.setPen(Qt::white);
     paint.drawText(20, 20, timeS);
 
+    QImage image_to_send = image;
     ui->label->setPixmap(pixmap);
 
-    if(sslSocket->isWritable()){
+   /* if(sslSocket->isWritable()){
 
         //
         //Enviar imagenes
@@ -187,7 +178,9 @@ void ViewerWindow::image_slot(const QImage &image) {
 
         qDebug() << "Enviando Imagen... ";
         sslSocket->write(bytes);
-    }
+    }*/
+
+        sendProtocol.sendPackage(sslSocket, image_to_send);
 
 }
 

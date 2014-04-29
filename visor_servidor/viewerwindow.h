@@ -8,8 +8,6 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QCamera>
-//#include <QTcpServer>
-//#include <QTcpSocket>
 #include <QBuffer>
 #include <QDir>
 #include <QSslSocket>
@@ -18,7 +16,7 @@
 #include "preferencesdialog.h"
 #include "capturebuffer.h"
 #include "server.h"
-
+#include "svvprotocol.h"
 
 namespace Ui {
 class ViewerWindow;
@@ -57,10 +55,8 @@ private:
     QCamera *camera;
     CaptureBuffer *captureBuffer;
     PreferencesDialog *preferences;
-    //QTcpSocket *client;
     QString ipDir, nPort;
-    //QTcpServer *tcpServer;
-    bool clientState;
+    //bool clientState;
     qint32 nextImgSize;
     uint imageNum;
     QSslSocket *client;

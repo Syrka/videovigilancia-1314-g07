@@ -19,6 +19,7 @@
 #include "dialogabout.h"
 #include "preferencesdialog.h"
 #include "capturebuffer.h"
+#include "svvprotocol.h"
 
 namespace Ui {
 class ViewerWindow;
@@ -65,7 +66,6 @@ private:
     PreferencesDialog *preferences;
     QList<QByteArray> devices;
     int numDevice, defaultDevice;
-    QTcpSocket *tcpSocket;
     QSslSocket *sslSocket;
     QString ipDir, nPort;
     QSettings *settings;

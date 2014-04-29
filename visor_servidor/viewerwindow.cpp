@@ -7,7 +7,6 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
     camera(NULL),
     captureBuffer(NULL),
     client(NULL),
-    /*tcpServer(NULL)*/
     server(NULL) {
 
         ui->setupUi(this);
@@ -92,36 +91,43 @@ void ViewerWindow::on_actionPrefrencias_triggered() {
 
 void ViewerWindow::on_actionNetwork_capture_triggered() {
 
-    //QSettings settings;
     nPort = settings->value("viewer/server/port").toString();
 
     qDebug() << "Capturando";
 
-    //tcpServer = new QTcpServer(this);
-    //tcpServer->listen(QHostAddress::Any, nPort.toInt());
-
+//<<<<<<< HEAD
     server = new Server(this);
     server->listen(QHostAddress::Any, nPort.toInt());
 
     connect(server, SIGNAL(signal()), this, SLOT(new_connection()));
+/*=======
+    connect(server, SIGNAL(signal()), this, SLOT(new_connection()));
+    qDebug() << "Capturando";
+>>>>>>> protocolo*/
 }
 
 void ViewerWindow::new_connection() {
 
+//<<<<<<< HEAD
     /*
     while(tcpServer->hasPendingConnections()) {
+=======
+    if(tcpServer->hasPendingConnections()) {
+>>>>>>> protocolo
         client = tcpServer->nextPendingConnection();
+        qDebug() << "Nuevo cliente";
         connect(client, SIGNAL(readyRead()), this, SLOT(read_image()));
+<<<<<<< HEAD
         clientState = 0;
         nextImgSize = 0;
     }*/
 
     client = dynamic_cast<QSslSocket *>(server->nextPendingConnection());
     connect(client, SIGNAL(readyRead()), this, SLOT(read_image()));
-    clientState = 0;
-    nextImgSize = 0;
+    //clientState = 0;
+    //nextImgSize = 0;
 }
-
+/*
 void ViewerWindow::read_image() {
 
     switch(clientState) {
@@ -146,4 +152,15 @@ void ViewerWindow::read_image() {
                 clientState = 0;
             } break;
     }
+=======
+    }
+}*/
+
+void ViewerWindow::read_image() {
+    svvProtocol emitter;
+    QImage img = emitter.recibePackage(client);
+    imageNum++;
+    //emitter.getIdCamera();
+    //emitter.getTimeStamp();
+    image_slot(img);
 }
