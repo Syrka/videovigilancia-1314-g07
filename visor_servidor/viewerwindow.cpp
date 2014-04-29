@@ -14,6 +14,7 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
         ui->stopButton->hide();
         ui->startButton->hide();
 
+        emitter = new svvProtocol();
 
         settings = new QSettings;
         //ipDir = settings->value("viewer/server/ip", "127.0.0.1").toString();
@@ -157,8 +158,7 @@ void ViewerWindow::read_image() {
 }*/
 
 void ViewerWindow::read_image() {
-    svvProtocol emitter;
-    QImage img = emitter.recibePackage(client);
+    QImage img = emitter->recibePackage(client);
     imageNum++;
     //emitter.getIdCamera();
     //emitter.getTimeStamp();

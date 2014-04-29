@@ -27,7 +27,8 @@ bool svvProtocol::sendPackage(QSslSocket *receptor, QImage &image){ //devuelve t
 
         ///enviamos la cabecera del protocolo
         //idprotocol
-        receptor->write( qToLittleEndian((const char *)&idprotocol_),  sizeof(quint32));//tamaño id protocolo
+        idprotocol_ = qToLittleEndian(idprotocol_);
+        receptor->write((const char *)&idprotocol_,  sizeof(quint32));//tamaño id protocolo
         //idcamera
         quint32 size_idcamera = idcamera_.size();
         qDebug()<<"tamaño idcamera: "<<size_idcamera;
@@ -62,8 +63,9 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
     qDebug()<<"Recibiendo paquete svvP";
     while(emitter->isReadable()){
         //qDebug() <<"estado→"<<state_;
-        switch(state_){
-        case 1://si 1→ espera quint32 de cabecera
+        //switch(state_){
+        //case 1://si 1→ espera quint32 de cabecera
+        if(state_ == 1){
             qDebug()<<"Recibiendo cabecera";
             if(emitter->bytesAvailable() >= sizeof(quint32)){
                 emitter->read((char *)&idprotocol,sizeof(quint32));
@@ -78,8 +80,9 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
                    return image;
                 }
             }
-            break;
-        case 2://si 2→ espera tamaño idcamera
+        }
+        //case 2://si 2→ espera tamaño idcamera
+        if(state_ == 2){
             qDebug()<<"Recibiendo tamaño idcamera";
             if(emitter->bytesAvailable() >= sizeof(quint32)){
                 emitter->read((char*)&size_idcamera_,sizeof(quint32));
@@ -87,8 +90,10 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
                 qDebug()<<"\t→"<<size_idcamera_;
                 state_++;
             }
-            break;
-        case 3://si 3→ espera Qstring de idcamera
+        }
+
+        //case 3://si 3→ espera Qstring de idcamera
+        if(state_ == 3){
             qDebug()<<"Recibiendo idcamera";
             if(emitter->bytesAvailable() >= size_idcamera_){
                 bytes_toread = emitter->read(size_idcamera_);
@@ -99,16 +104,18 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
                 qDebug()<<idcamera_;
                 state_++;
             }
-            break;
-        case 4://si 4→ espera tamaño timestamp
+        }
+        //case 4://si 4→ espera tamaño timestamp
+        if(state_ == 4){
             qDebug()<<"Recibiendo tamaño timestamp";
             if(emitter->bytesAvailable() >= sizeof(quint32)){
                 emitter->read((char*)&size_timestamp_, sizeof(quint32));
                 size_timestamp_ = qFromLittleEndian(size_timestamp_);
                 state_++;
             }
-            break;
-        case 5://si 5→ espera QDateTime en QString timestamp
+        }
+        //case 5://si 5→ espera QDateTime en QString timestamp
+        if(state_ == 5){
             qDebug()<<"Recibiendo timestamp";
             if(emitter->bytesAvailable() >= size_timestamp_){
                 QString time_string;
@@ -122,8 +129,9 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
                 qDebug()<<timestamp_.toString();
                 state_++;
             }
-            break;
-        case 6://si 6→ espera tamaño image
+        }
+        //case 6://si 6→ espera tamaño image
+        if(state_ == 6){
             qDebug()<<"Recibiendo tamaño imagen";
             if(emitter->bytesAvailable() >= sizeof(quint32)){
                 emitter->read((char *)&size_image_, sizeof(quint32));
@@ -131,8 +139,9 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
                 qDebug() << size_image_;
                 state_++;
             }
-            break;
-        case 7://si 7→ espera QImage image
+        }
+        //case 7://si 7→ espera QImage image
+        if(state_ == 7){
             //qDebug()<<"Recibiendo imagen";
             if(emitter->bytesAvailable() >= size_image_){
                 QBuffer buffer;
@@ -144,6 +153,6 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
             break;
         }
     }
-    QMessageBox::information(0, "Error al recibir", ""+emitter->errorString());
+    //QMessageBox::information(0, "Error al recibir", ""+emitter->errorString());
     return image;
 }

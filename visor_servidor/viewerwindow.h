@@ -62,6 +62,7 @@ private:
     QSslSocket *client;
     Server *server;
     QSettings *settings;
+    svvProtocol *emitter;
 };
 
 #endif // VIEWERWINDOW_H
