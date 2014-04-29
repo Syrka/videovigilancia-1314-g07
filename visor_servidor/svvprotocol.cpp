@@ -32,14 +32,13 @@ bool svvProtocol::sendPackage(QSslSocket *receptor, QImage &image){ //devuelve t
         //idcamera
         quint32 size_idcamera = idcamera_.size();
         qDebug()<<"tamaño idcamera: "<<size_idcamera;
-        QString idcamera_bytes;
         receptor->write( qToLittleEndian((const char *)&size_idcamera), sizeof(quint32));  //tamaño id camara
-        receptor->write( qToLittleEndian((char *)&idcamera_), size_idcamera);  //id camara
+        receptor->write((char *)&idcamera_, size_idcamera);  //id camara
         //timestamp
         QString time_string = timestamp_.toString();
         quint32 size_timestamp = time_string.size();
         receptor->write( qToLittleEndian((const char*)&size_timestamp), sizeof(quint32));//tamaño timestamp
-        receptor->write( qToLittleEndian((const char*)&time_string), size_timestamp);//timestamp
+        receptor->write( (const char*)&time_string, size_timestamp);//timestamp
 
         ///enviamos la imagen
         quint32 size_bytes_image = bytes_image.length();
@@ -97,7 +96,6 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
             qDebug()<<"Recibiendo idcamera";
             if(emitter->bytesAvailable() >= size_idcamera_){
                 bytes_toread = emitter->read(size_idcamera_);
-                bytes_toread = qFromLittleEndian(bytes_toread);
                 for(uint i=0; i<size_idcamera_; i++){
                     idcamera_ += bytes_toread[i];
                 }
@@ -120,7 +118,6 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
             if(emitter->bytesAvailable() >= size_timestamp_){
                 QString time_string;
                 bytes_toread = emitter->read(size_timestamp_);
-                bytes_toread = qFromLittleEndian(bytes_toread);
                 for(uint i=0;i<size_timestamp_;i++){
                     time_string += bytes_toread[i];
                 }
