@@ -1,8 +1,6 @@
 #include "preferencesdialog.h"
 #include "ui_preferencesdialog.h"
 
-#include <QDebug>
-
 PreferencesDialog::PreferencesDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::PreferencesDialog)

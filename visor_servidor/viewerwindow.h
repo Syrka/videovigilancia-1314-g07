@@ -56,8 +56,6 @@ private:
     CaptureBuffer *captureBuffer;
     PreferencesDialog *preferences;
     QString ipDir, nPort;
-    //bool clientState;
-    qint32 nextImgSize;
     uint imageNum;
     QSslSocket *client;
     Server *server;

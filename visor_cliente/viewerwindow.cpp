@@ -1,6 +1,5 @@
 #include "viewerwindow.h"
 #include "ui_viewerwindow.h"
-//#include <QHostInfo>
 
 ViewerWindow::ViewerWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -26,7 +25,6 @@ ViewerWindow::~ViewerWindow() {
     delete ui;
     delete movie;
     delete camera;
-    //delete tcpSocket;
     delete sslSocket;
     delete settings;
 }
@@ -155,32 +153,7 @@ void ViewerWindow::image_slot(const QImage &image) {
     QImage image_to_send = image;
     ui->label->setPixmap(pixmap);
 
-   /* if(sslSocket->isWritable()){
-
-        //
-        //Enviar imagenes
-        //
-
-        QBuffer buffer;
-        QImageWriter writer(&buffer,"jpeg");
-
-        QImage image_;
-        image_ = pixmap.toImage();
-        writer.setCompression(70);
-        writer.write(image_);
-
-        QByteArray bytes;
-        bytes = buffer.buffer();
-
-        qint32 bytes_length = bytes.length();
-        qDebug() << "Tamaño de la imagen: " << bytes.size();
-        sslSocket->write((const char *)&bytes_length, sizeof(qint32));
-
-        qDebug() << "Enviando Imagen... ";
-        sslSocket->write(bytes);
-    }*/
-
-        sendProtocol.sendPackage(sslSocket, image_to_send);
+    sendProtocol.sendPackage(sslSocket, image_to_send);
 
 }
 
