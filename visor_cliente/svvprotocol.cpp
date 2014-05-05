@@ -13,7 +13,7 @@ svvProtocol::svvProtocol(){
 }
 
 //envia un paquete del protocolo, cabecera, timestamp e imagen
-bool svvProtocol::sendPackage(QSslSocket *receptor, QImage &image){ //devuelve true si la imagen ha sido enviada
+bool svvProtocol::sendPackage(QSslSocket *receptor, QImage &image, QVector<QRect> VRect){ //devuelve true si la imagen ha sido enviada
     if(receptor->isWritable()){
 
         QBuffer buffer;
@@ -51,9 +51,35 @@ bool svvProtocol::sendPackage(QSslSocket *receptor, QImage &image){ //devuelve t
         receptor->write((const char*)&size_bytes_image, sizeof(quint32));//tamaño image
         qDebug() << "Enviando Imagen... ";
         receptor->write(qToLittleEndian(bytes_image), size_bytes_image);                  //image
+
+
+        //
+        //
+        //
+
+        for (QVector<QRect>::const_iterator i = VRect.begin(); i < VRect.end(); ++i) {
+            QRect rect_ = *i;
+
+            x_ = qToLittleEndian(rect_.x());
+            qDebug() << x_;
+            receptor->write((const char*)&x_, sizeof(qint32));
+
+            y_ = qToLittleEndian(rect_.y());
+            qDebug() << y_;
+            receptor->write((char*)&y_, sizeof(qint32));
+
+            width_ = qToLittleEndian(rect_.width());
+            qDebug() << width_;
+            receptor->write((char*)&width_, sizeof(qint32));
+
+            height_ = qToLittleEndian(rect_.height());
+            qDebug() << height_;
+            receptor->write((char*)&height_, sizeof(qint32));
+        }
         return true;
     }
-    else{
+
+    else {
         QMessageBox::information(0, "Error al emitir", ""+receptor->errorString());
         return false;
     }

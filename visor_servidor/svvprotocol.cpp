@@ -144,6 +144,45 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
                 QBuffer buffer;
                 buffer.setData(emitter->read(size_image_));
                 image.load(&buffer, "jpeg");
+                //state_=1;
+                state_++;
+                //return image;
+            }
+            //break;
+        }
+
+        if(state_ == 8) {
+            qDebug()<<"Recibiendo X";
+            if(emitter->bytesAvailable() >= sizeof(qint32)) {
+                bytes_toread = emitter->read(x_);
+                qDebug()<<x_;
+                state_++;
+            }
+        }
+
+        if(state_ == 9) {
+            qDebug()<<"Recibiendo Y";
+            if(emitter->bytesAvailable() >= sizeof(qint32)) {
+                bytes_toread = emitter->read(y_);
+                qDebug()<<y_;
+                state_++;
+            }
+        }
+
+        if(state_ == 10) {
+            qDebug()<<"Recibiendo Width";
+            if(emitter->bytesAvailable() >= sizeof(qint32)) {
+                bytes_toread = emitter->read(widht_);
+                qDebug()<<widht_;
+                state_++;
+            }
+        }
+
+        if(state_ == 11) {
+            qDebug()<<"Recibiendo Height";
+            if(emitter->bytesAvailable() >= sizeof(qint32)) {
+                bytes_toread = emitter->read(height_);
+                qDebug()<<height_;
                 state_=1;
                 return image;
             }

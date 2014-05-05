@@ -28,6 +28,10 @@ private:
     quint32 size_idcamera_;
     quint32 size_timestamp_;
     quint32 size_image_;
+    quint32 x_;
+    quint32 y_;
+    quint32 widht_;
+    quint32 height_;
     int state_; //si 1→ espera Qstring de cabecera
                 //si 2→ espera tamaño idcamera
                 //si 3→ espera Qstring de idcamera

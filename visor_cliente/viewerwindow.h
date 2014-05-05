@@ -15,11 +15,13 @@
 #include <QBuffer>
 #include <QImageWriter>
 #include <QSslSocket>
+#include <QThread>
 
 #include "dialogabout.h"
 #include "preferencesdialog.h"
 #include "capturebuffer.h"
 #include "svvprotocol.h"
+#include "motiondetector.h"
 
 namespace Ui {
 class ViewerWindow;
@@ -58,6 +60,8 @@ private slots:
 
     void connected();
 
+    void send_processed(const QImage &image, const QVector<QRect> &VRect);
+
 private:
     Ui::ViewerWindow *ui;
     QMovie *movie;
@@ -69,6 +73,12 @@ private:
     QSslSocket *sslSocket;
     QString ipDir, nPort;
     QSettings *settings;
+    MotionDetector *motionDetector;
+    QThread *motionThread;
+
+signals:
+    void to_motion_detector(const QImage &image);
+
 };
 
 #endif // VIEWERWINDOW_H

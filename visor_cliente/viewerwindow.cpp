@@ -19,14 +19,33 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
         settings->setValue("viewer/server/port", 15000);
 
         sslSocket = new QSslSocket(this);
+
+        qRegisterMetaType <QVector <QRect> >("QVector<QRect>");
+        motionThread = new QThread();
+        motionDetector = new MotionDetector();
+        motionDetector->moveToThread(motionThread);
+
+        connect(this, SIGNAL(to_motion_detector(QImage)),
+                motionDetector, SLOT(detect_motion(QImage)));
+
+        connect(this, SIGNAL(processed_image(QImage, QVector<QRect>)),
+                this, SLOT(send_processed(QImage, QVector<QRect>)));
+
+        motionThread->start();
 }
 
 ViewerWindow::~ViewerWindow() {
+
+    motionThread->quit();
+    motionThread->wait();
+    delete motionThread;
+
     delete ui;
     delete movie;
     delete camera;
     delete sslSocket;
     delete settings;
+    delete motionDetector;
 }
 
 void ViewerWindow::on_Quit_clicked() {
@@ -138,6 +157,31 @@ void ViewerWindow::on_actionCapturar_triggered() {
 
 void ViewerWindow::image_slot(const QImage &image) {
 
+    emit to_motion_detector(image);
+
+    /*QDateTime time = QDateTime::currentDateTime();
+    QString timeS = time.toString();
+
+    //svvProtocol sendProtocol ("Host",time); //protocolo para enviar las imagenes de la forma correcta
+
+    QPixmap pixmap;
+    pixmap = pixmap.fromImage(image);
+
+    QPainter paint(&pixmap);
+    paint.setPen(Qt::white);
+    paint.drawText(20, 20, timeS);
+
+    //recibir la señal con la imagen procesada
+
+    QImage imageToSend = image;
+    ui->label->setPixmap(pixmap);
+
+    sendProtocol.sendPackage(sslSocket, imageToSend);*/
+
+}
+
+void ViewerWindow::send_processed(const QImage &image, const QVector<QRect> &VRect) {
+
     QDateTime time = QDateTime::currentDateTime();
     QString timeS = time.toString();
 
@@ -150,12 +194,13 @@ void ViewerWindow::image_slot(const QImage &image) {
     paint.setPen(Qt::white);
     paint.drawText(20, 20, timeS);
 
-    QImage image_to_send = image;
+    QImage imageToSend = image;
     ui->label->setPixmap(pixmap);
 
-    sendProtocol.sendPackage(sslSocket, image_to_send);
-
+    sendProtocol.sendPackage(sslSocket, imageToSend, VRect);
 }
+
+
 
 void ViewerWindow::connected() {
         qDebug() << "Conectado";
