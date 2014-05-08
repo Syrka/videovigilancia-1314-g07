@@ -23,6 +23,9 @@
 #include "svvprotocol.h"
 #include "motiondetector.h"
 
+typedef std::vector<cv::Mat> ImagesType;
+typedef std::vector<std::vector<cv::Point> > ContoursType;
+
 namespace Ui {
 class ViewerWindow;
 }

@@ -60,21 +60,26 @@ bool svvProtocol::sendPackage(QSslSocket *receptor, QImage &image, QVector<QRect
         for (QVector<QRect>::const_iterator i = VRect.begin(); i < VRect.end(); ++i) {
             QRect rect_ = *i;
 
+            nRects = VRect.size();
+            nRects = qToLittleEndian(nRects);
+                qDebug() << nRects;
+            receptor->write((const char*)&nRects, sizeof(qint32));
+
             x_ = qToLittleEndian(rect_.x());
-            qDebug() << x_;
+                qDebug() << x_;
             receptor->write((const char*)&x_, sizeof(qint32));
 
             y_ = qToLittleEndian(rect_.y());
-            qDebug() << y_;
-            receptor->write((char*)&y_, sizeof(qint32));
+                qDebug() << y_;
+            receptor->write((const char*)&y_, sizeof(qint32));
 
             width_ = qToLittleEndian(rect_.width());
-            qDebug() << width_;
-            receptor->write((char*)&width_, sizeof(qint32));
+                qDebug() << width_;
+            receptor->write((const char*)&width_, sizeof(qint32));
 
             height_ = qToLittleEndian(rect_.height());
-            qDebug() << height_;
-            receptor->write((char*)&height_, sizeof(qint32));
+                qDebug() << height_;
+            receptor->write((const char*)&height_, sizeof(qint32));
         }
         return true;
     }
@@ -96,8 +101,8 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
 
         if(state_ == 1){
             qDebug()<<"Recibiendo cabecera";
-            if(emitter->bytesAvailable() >= sizeof(quint32)){
-                emitter->read((char *)&idprotocol,sizeof(quint32));
+            if(emitter->bytesAvailable() >= sizeof(qint32)){
+                emitter->read((char *)&idprotocol,sizeof(qint32));
                 idprotocol = qFromLittleEndian(idprotocol);
                 qDebug()<< idprotocol <<" = "<<idprotocol_<<"?";
                 if(idprotocol == idprotocol_){
@@ -113,14 +118,13 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
 
         if(state_ == 2){
             qDebug()<<"Recibiendo tamaño idcamera";
-            if(emitter->bytesAvailable() >= sizeof(quint32)){
-                emitter->read((char*)&size_idcamera_,sizeof(quint32));
+            if(emitter->bytesAvailable() >= sizeof(qint32)){
+                emitter->read((char*)&size_idcamera_,sizeof(qint32));
                 size_idcamera_ = qFromLittleEndian (size_idcamera_);
                 qDebug()<<"\t→"<<size_idcamera_;
                 state_++;
             }
         }
-
 
         if(state_ == 3){
             qDebug()<<"Recibiendo idcamera";
@@ -136,8 +140,8 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
 
         if(state_ == 4){
             qDebug()<<"Recibiendo tamaño timestamp";
-            if(emitter->bytesAvailable() >= sizeof(quint32)){
-                emitter->read((char*)&size_timestamp_, sizeof(quint32));
+            if(emitter->bytesAvailable() >= sizeof(qint32)){
+                emitter->read((char*)&size_timestamp_, sizeof(qint32));
                 size_timestamp_ = qFromLittleEndian(size_timestamp_);
                 state_++;
             }
@@ -160,8 +164,8 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
 
         if(state_ == 6){
             qDebug()<<"Recibiendo tamaño imagen";
-            if(emitter->bytesAvailable() >= sizeof(quint32)){
-                emitter->read((char *)&size_image_, sizeof(quint32));
+            if(emitter->bytesAvailable() >= sizeof(qint32)){
+                emitter->read((char *)&size_image_, sizeof(qint32));
                 size_image_ = qFromLittleEndian(size_image_);
                 qDebug() << size_image_;
                 state_++;

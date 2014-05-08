@@ -28,7 +28,7 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
         connect(this, SIGNAL(to_motion_detector(QImage)),
                 motionDetector, SLOT(detect_motion(QImage)));
 
-        connect(this, SIGNAL(processed_image(QImage, QVector<QRect>)),
+        connect(motionDetector, SIGNAL(processed_image(QImage, QVector<QRect>)),
                 this, SLOT(send_processed(QImage, QVector<QRect>)));
 
         motionThread->start();
@@ -199,8 +199,6 @@ void ViewerWindow::send_processed(const QImage &image, const QVector<QRect> &VRe
 
     sendProtocol.sendPackage(sslSocket, imageToSend, VRect);
 }
-
-
 
 void ViewerWindow::connected() {
         qDebug() << "Conectado";

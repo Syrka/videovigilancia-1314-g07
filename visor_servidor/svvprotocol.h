@@ -25,13 +25,14 @@ private:
     quint32 idprotocol_;
     QString idcamera_;
     QDateTime timestamp_;
-    quint32 size_idcamera_;
-    quint32 size_timestamp_;
-    quint32 size_image_;
-    quint32 x_;
-    quint32 y_;
-    quint32 widht_;
-    quint32 height_;
+    qint32 size_idcamera_;
+    qint32 size_timestamp_;
+    qint32 size_image_;
+    qint32 x_;
+    qint32 y_;
+    qint32 width_;
+    qint32 height_;
+    qint32 nRects;
     int state_; //si 1→ espera Qstring de cabecera
                 //si 2→ espera tamaño idcamera
                 //si 3→ espera Qstring de idcamera

@@ -10,6 +10,8 @@ MotionDetector::MotionDetector() {
     backgroundSubtractor->set("detectShadows", false);
 
     foregroundMask = new cv::Mat();
+
+    VRect.clear();
 }
 
 MotionDetector::~MotionDetector() {
@@ -45,9 +47,7 @@ void MotionDetector::detect_motion(const QImage &image) {
     // P. ej. usar cv::boundingRect() para obtener el cuadro
     // delimitador de cada uno y pintarlo en la imagen original
 
-    //std::vector<QRect> boundingRects;
-
-    VRect.clear();
+    //VRect.clear();
     for(ContoursType::const_iterator i = contours.begin(); i < contours.end(); ++i) {
         cv::Rect rect = cv::boundingRect(*i);
         QRect rect_(rect.x, rect.y, rect.width, rect.height);
