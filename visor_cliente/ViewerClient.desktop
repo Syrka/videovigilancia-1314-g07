@@ -1,0 +1,7 @@
+Version=1
+Type=Application
+Terminal=false
+Comment=Sistema de Video Vigilancia
+Icon=/usr/local/share/VentanaCliente/icons/hicolor/32x32/apps/ViewerCliente.png
+Name=Eclipse IDE 4.2.2
+Exec= /usr/local/bin/ViewerCliente
