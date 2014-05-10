@@ -20,8 +20,8 @@ void Server::incomingConnection(qintptr socketDescriptor) {
     if(socket->setSocketDescriptor(socketDescriptor)) {
         addPendingConnection(socket);
 
-        key = settings->value("viewer/key").toByteArray();
-        certificate = settings->value("viewer/certificate").toByteArray();
+        key = settings->value("viewer/SSL/path").toByteArray();
+        certificate = settings->value("viewer/SSL/certificate").toByteArray();
 
         QFile file_key(key);
 
@@ -30,7 +30,7 @@ void Server::incomingConnection(qintptr socketDescriptor) {
             file_key.close();
         }
         else {
-            qDebug() <<"Error key: "<< file_key.errorString();
+            qDebug() <<"Error SSL dir: "<< file_key.errorString();
         }
 
         QFile file_cert(certificate);

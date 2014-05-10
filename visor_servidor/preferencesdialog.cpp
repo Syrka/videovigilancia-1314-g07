@@ -10,9 +10,11 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     settings = new QSettings;
     ipDirP = settings->value("viewer/server/ip","127.0.0.1").toString();
     nPortP = settings->value("viewer/server/port","15000").toString();
+    sslPath_ = settings->value("viewer/SSL/path", "~/SSL").toString();
 
     ui->lineEditIp->setText(ipDirP);
     ui->lineEditPort->setText(nPortP);
+    ui->lineSslpath->setText(sslPath_);
 }
 
 PreferencesDialog::~PreferencesDialog() {
@@ -22,11 +24,13 @@ PreferencesDialog::~PreferencesDialog() {
 
 void PreferencesDialog::on_okButton_clicked() {
 
-    settings->setValue("viewer/server/ip", ipDirP);
-    settings->setValue("viewer/server/port", nPortP);
-
+    //cargamos los valores que se han introducido
     ipDirP = ui->lineEditIp->text();
     nPortP = ui->lineEditPort->text();
+    //sslPath_ = ui->
+
+    settings->setValue("viewer/server/ip", ipDirP);
+    settings->setValue("viewer/server/port", nPortP);
 
     close();
 }

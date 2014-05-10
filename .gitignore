@@ -1,3 +1,9 @@
 *.pro*
-ui_*
+*ui_*
 *.o*
+*moc_*
+Makefile
+ViewerClient
+ViewerServer
+*.autosave
+*.gitignore*

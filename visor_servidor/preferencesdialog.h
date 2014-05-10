@@ -24,7 +24,7 @@ private slots:
 private:
     Ui::PreferencesDialog *ui;
     int numDevice;
-    QString ipDirP, nPortP;
+    QString ipDirP, nPortP, sslPath_;
     QSettings *settings;
 };
 
