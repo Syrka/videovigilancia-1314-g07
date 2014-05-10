@@ -66,13 +66,13 @@ void ViewerWindow::save_images(const QImage &image) {
     imageName.setNum(imageNum, 16);
     imageName = aux.fill('0', 20 - imageName.length()) + imageName;
 
-    QDir dir;//abrimos el directorio que almacena las imagenes
-    dir.mkpath( APP_VARDIR
-               +"/" + imageName.mid(0,5)
+    QDir dir(APP_VARDIR);//abrimos el directorio que almacena las imagenes
+    dir.mkpath( dir.currentPath()
+               + "/" + imageName.mid(0,5)
                + "/" + imageName.mid(5,5)
                + "/" + imageName.mid(10,5));
 
-    image.save(QDir::toNativeSeparators(QDir::currentPath()
+    image.save(QDir::toNativeSeparators(dir.currentPath()
                                         + "/" + imageName.mid(0,5)
                                         + "/" + imageName.mid(5,5)
                                         + "/" + imageName.mid(10,5)
