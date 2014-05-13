@@ -1,5 +1,6 @@
 #ifndef SVVPROTOCOL_H
 #define SVVPROTOCOL_H
+
 #include <QString>
 #include <QDateTime>
 #include <QSslSocket>
@@ -10,11 +11,11 @@
 #include <QtEndian>
 #include <QMessageBox>
 
-class svvProtocol {
+class SvvProtocol {
 
 public:
-    svvProtocol(QString idcamera,QDateTime timestamp);
-    svvProtocol();
+    SvvProtocol(QString idcamera,QDateTime timestamp);
+    SvvProtocol();
     bool sendPackage(QSslSocket *receptor, QImage &image, QVector<QRect> VRect);
     QImage recibePackage(QSslSocket *emitter);//se guarda lo que se recibe en una imagen
     QDateTime getTimeStamp();       //devuelve el timestamp de la ultima foto enviada/recibida

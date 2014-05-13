@@ -6,8 +6,6 @@
 #include <QObject>
 #include <QDebug>
 
-// std::vector<cv::Mat> images = <vector de imágenes en cv::Mat>
-
 // Definimos algunos tipos para que el código se lea mejor
 typedef std::vector<cv::Mat> ImagesType;
 typedef std::vector<std::vector<cv::Point> > ContoursType;

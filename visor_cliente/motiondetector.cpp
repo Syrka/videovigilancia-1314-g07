@@ -34,7 +34,13 @@ void MotionDetector::detect_motion(const QImage &image) {
     // pequeño tamaño. Erode() las encoge y dilate() las vuelve a
     // agrandar.
     cv::erode(*foregroundMask, *foregroundMask, cv::Mat());
+    cv::erode(*foregroundMask, *foregroundMask, cv::Mat());
+    cv::erode(*foregroundMask, *foregroundMask, cv::Mat());
     cv::dilate(*foregroundMask, *foregroundMask, cv::Mat());
+    cv::dilate(*foregroundMask, *foregroundMask, cv::Mat());
+    cv::dilate(*foregroundMask, *foregroundMask, cv::Mat());
+
+
 
     // Obtener los contornos que bordean las regiones externas
     // (CV_RETR_EXTERNAL) encontradas. Cada contorno es un vector
@@ -56,5 +62,5 @@ void MotionDetector::detect_motion(const QImage &image) {
 
     qDebug() << "Imagen procesada";
     emit processed_image(imageFormat, VRect);
-
+    VRect.clear();
 }

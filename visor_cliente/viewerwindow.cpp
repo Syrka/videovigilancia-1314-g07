@@ -185,7 +185,7 @@ void ViewerWindow::send_processed(const QImage &image, const QVector<QRect> &VRe
     QDateTime time = QDateTime::currentDateTime();
     QString timeS = time.toString();
 
-    svvProtocol sendProtocol ("Host",time); //protocolo para enviar las imagenes de la forma correcta
+    SvvProtocol sendProtocol ("Host",time); //protocolo para enviar las imagenes de la forma correcta
 
     QPixmap pixmap;
     pixmap = pixmap.fromImage(image);

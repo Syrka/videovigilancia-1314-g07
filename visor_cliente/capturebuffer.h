@@ -1,6 +1,7 @@
 #ifndef CAPTUREBUFFER_H
 #define CAPTUREBUFFER_H
 
+#include <QDebug>
 #include <QAbstractVideoSurface>
 
 class CaptureBuffer : public QAbstractVideoSurface

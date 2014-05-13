@@ -1,19 +1,21 @@
 #include "svvprotocol.h"
 
-svvProtocol::svvProtocol(QString idcamera, QDateTime timestamp=QDateTime::currentDateTime()){
-    idprotocol_ =73767637; //svv7 → en hexadecimal
+SvvProtocol::SvvProtocol(QString idcamera, QDateTime timestamp=QDateTime::currentDateTime()) {
+    idprotocol_ = 73767637; //svv7 → en hexadecimal
     idcamera_ = idcamera;
     timestamp_ = timestamp;
     state_ = 1;
 }
 
-svvProtocol::svvProtocol(){
+SvvProtocol::SvvProtocol() {
     idprotocol_ = 73767637; //svv7 → en hexadecimal
     state_ = 1;
 }
 
+SvvProtocol::~SvvProtocol(){}
+
 //envia un paquete del protocolo, cabecera, timestamp e imagen
-bool svvProtocol::sendPackage(QSslSocket *receptor, QImage &image){ //devuelve true si la imagen ha sido enviada
+bool SvvProtocol::sendPackage(QSslSocket *receptor, QImage &image){ //devuelve true si la imagen ha sido enviada
     if(receptor->isWritable()){
 
         QBuffer buffer;
@@ -56,50 +58,53 @@ bool svvProtocol::sendPackage(QSslSocket *receptor, QImage &image){ //devuelve t
 }
 
 //se guarda lo que se recibe en una imagen y se almacena el timestamp y demas info
-QImage svvProtocol::recibePackage(QSslSocket *emitter){
-    QImage image;
+QImage SvvProtocol::recibePackage(QSslSocket *emitter){
     quint32 idprotocol;
     QByteArray bytes_toread;
-    qDebug()<<"Recibiendo paquete svvP";
+    qDebug()<<"Recibiendo paquete svv";
 
     while(emitter->isReadable()){
 
-        if(state_ == 1){
+        if(state_ == 1) {
             qDebug()<<"Recibiendo cabecera";
-            if(emitter->bytesAvailable() >= sizeof(quint32)){
+            if(emitter->bytesAvailable() >= sizeof(quint32)) {
                 emitter->read((char *)&idprotocol,sizeof(quint32));
                 idprotocol = qFromLittleEndian(idprotocol);
-                qDebug()<< idprotocol <<" = "<<idprotocol_<<"?";
-                if(idprotocol == idprotocol_){
+                //qDebug()<< idprotocol <<" = "<<idprotocol_<< "?";
+                if(idprotocol == idprotocol_) {
                     state_++;
                 }
-                else{
+                else {
                     emitter->abort();
                     QMessageBox::information(0,"Conexion abortada","Por cuestiones de seguridad se ha abortado una conexion entrante");
-                   return image;
+                    return image_;
                 }
             }
+            else
+                break;
         }
 
-        if(state_ == 2){
+        if(state_ == 2) {
             qDebug()<<"Recibiendo tamaño idcamera";
-            if(emitter->bytesAvailable() >= sizeof(qint32)){
+            if(emitter->bytesAvailable() >= sizeof(qint32)) {
                 emitter->read((char*)&size_idcamera_,sizeof(qint32));
                 size_idcamera_ = qFromLittleEndian (size_idcamera_);
-                qDebug()<<"\t→"<<size_idcamera_;
                 state_++;
+            }
+            else {
+                break;
             }
         }
 
-        if(state_ == 3){
+        if(state_ == 3) {
             qDebug()<<"Recibiendo idcamera";
-            if(emitter->bytesAvailable() >= size_idcamera_){
+            if(emitter->bytesAvailable() >= size_idcamera_) {
                 bytes_toread = emitter->read(size_idcamera_);
-                for(uint i=0; i<size_idcamera_; i++){
-                    idcamera_ += bytes_toread[i];
-                }
-                qDebug()<<idcamera_;
+                idcamera_ = bytes_toread;
                 state_++;
+            }
+            else {
+                break;
             }
         }
 
@@ -110,6 +115,9 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
                 size_timestamp_ = qFromLittleEndian(size_timestamp_);
                 state_++;
             }
+            else {
+                break;
+            }
         }
 
         if(state_ == 5){
@@ -117,82 +125,95 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
             if(emitter->bytesAvailable() >= size_timestamp_){
                 QString time_string;
                 bytes_toread = emitter->read(size_timestamp_);
-                for(uint i=0;i<size_timestamp_;i++){
-                    time_string += bytes_toread[i];
-                }
+                time_string = bytes_toread;
                 timestamp_.fromString(time_string);
-                qDebug()<<time_string;
-                qDebug()<<timestamp_.toString();
                 state_++;
+            }
+            else {
+                break;
             }
         }
 
-        if(state_ == 6){
+        if(state_ == 6) {
             qDebug()<<"Recibiendo tamaño imagen";
-            if(emitter->bytesAvailable() >= sizeof(qint32)){
+            if(emitter->bytesAvailable() >= sizeof(qint32)) {
                 emitter->read((char *)&size_image_, sizeof(qint32));
                 size_image_ = qFromLittleEndian(size_image_);
                 qDebug() << size_image_;
                 state_++;
             }
+            else {
+                break;
+            }
         }
 
-        if(state_ == 7){
+        if(state_ == 7) {
             qDebug()<<"Recibiendo imagen";
-            if(emitter->bytesAvailable() >= size_image_){
+            if(emitter->bytesAvailable() >= size_image_) {
                 QBuffer buffer;
                 buffer.setData(emitter->read(size_image_));
-                image.load(&buffer, "jpeg");
-                //state_=1;
+                image_.load(&buffer, "jpeg");
                 state_++;
-                //return image;
             }
-            //break;
+            else {
+                break;
+            }
+       }
+
+       if(state_ == 8) {
+            qDebug()<<"Recibiendo nRects";
+            if(emitter->bytesAvailable() >= sizeof(qint32)) {
+                emitter->read((char*)&nRects, sizeof(qint32));
+                qDebug() << nRects;
+                state_++;
+            }
+            else {
+                break;
+            }
         }
 
-        if(state_ == 8) {
-            qDebug()<<"Recibiendo X, Y, WIDTH y HEIGHT";
-            if(emitter->bytesAvailable() >= ((sizeof(qint32))*5)) {
-                bytes_toread = emitter->read(nRects);
-                bytes_toread = emitter->read(x_);
-                bytes_toread = emitter->read(y_);
-                bytes_toread = emitter->read(width_);
-                bytes_toread = emitter->read(height_);
-                qDebug()<< "nRects" << nRects <<  "x" << x_ << "y" << y_ << "width" << width_ << "height" << height_;
-                state_=1;
-            }
-            break;
-        }
-
-        /*
         if(state_ == 9) {
-            qDebug()<<"Recibiendo Y";
-            if(emitter->bytesAvailable() >= sizeof(qint32)) {
-                bytes_toread = emitter->read(y_);
-                qDebug()<<y_;
-                state_++;
-            }
-        }
+            qDebug() << nRects;
+            qDebug()<<"Recibiendo X, Y, WIDTH y HEIGHT";
+            if(emitter->bytesAvailable() >= (nRects * 4 * sizeof(qint32))) {
 
-        if(state_ == 10) {
-            qDebug()<<"Recibiendo Width";
-            if(emitter->bytesAvailable() >= sizeof(qint32)) {
-                bytes_toread = emitter->read(widht_);
-                qDebug()<<widht_;
-                state_++;
-            }
-        }
+                for (uint i = 0; i < nRects; i++) {
+                    emitter->read((char*)&x_, sizeof(qint32));
+                    x_ = qFromLittleEndian(x_);
 
-        if(state_ == 11) {
-            qDebug()<<"Recibiendo Height";
-            if(emitter->bytesAvailable() >= sizeof(qint32)) {
-                bytes_toread = emitter->read(height_);
-                qDebug()<<height_;
+                    emitter->read((char*)&y_, sizeof(qint32));
+                    y_ = qFromLittleEndian(y_);
+
+                    emitter->read((char*)&width_, sizeof(qint32));
+                    width_ = qFromLittleEndian(width_);
+
+                    emitter->read((char*)&height_, sizeof(qint32));
+                    height_ = qFromLittleEndian(height_);
+
+                    //qDebug()<< "x" << x_ << "y" << y_ << "width" << width_ << "height" << height_;
+
+                    QRect rect_;
+                    rect_.setX(x_);
+                    rect_.setY(y_);
+                    rect_.setWidth(width_);
+                    rect_.setHeight(height_);
+
+                    //QVector<QRect> VRect;
+                    //VRect.clear();
+                    VRect.push_back(rect_);
+
+                    //emit ready_image(image, VRect);
+                }
+                emit ready_image(image_, VRect);
+                VRect.clear();
                 state_=1;
-                return image;
+                /*qint32 veinte;
+                emitter->read((char*)&veinte, 20);
+             //   qDebug() << "VEINTE" << veinte;*/
             }
+            else
             break;
-        }*/
+        }
     }
-    return image;
+    return image_;
 }
