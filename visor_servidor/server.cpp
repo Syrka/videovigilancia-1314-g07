@@ -5,8 +5,8 @@ Server::Server(QObject *parent) : QTcpServer(parent) {
     socket = new QSslSocket;
 
     settings = new QSettings;
-    settings->setValue("viewer/key", "SSL/server.key");
-    settings->setValue("viewer/certificate", "SSL/server.crt");
+    settings->setValue("viewer/SSL/key", "~/SSL/server.key");
+    settings->setValue("viewer/SSL/certificate", "~/SSL/server.crt");
 }
 
 Server::~Server() {
