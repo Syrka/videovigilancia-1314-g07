@@ -7,3 +7,5 @@ ViewerClient
 ViewerServer
 *.autosave
 *.gitignore*
+*.pro*
+build*
