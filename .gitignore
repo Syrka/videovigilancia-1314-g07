@@ -9,3 +9,5 @@ ViewerServer
 *.gitignore*
 *.pro*
 build*
+*.conf
+*.png

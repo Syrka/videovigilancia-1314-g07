@@ -68,14 +68,12 @@ void ViewerWindow::save_images(const QImage &image) {
 
     QDir dir(APP_VARDIR);//abrimos el directorio que almacena las imagenes
 
-    QString dir_var = "/var/lib";
-    dir.mkpath( dir_var /*dir.currentPath()*/
-               + "/" + imageName.mid(0,5)
+    dir.mkpath( /*dir.currentPath()*/
+               imageName.mid(0,5)
                + "/" + imageName.mid(5,5)
                + "/" + imageName.mid(10,5));
 
-    image.save(QDir::toNativeSeparators(dir.currentPath()
-                                        + "/" + imageName.mid(0,5)
+    image.save(QDir::toNativeSeparators( QString(APP_VARDIR) + "/" + imageName.mid(0,5)
                                         + "/" + imageName.mid(5,5)
                                         + "/" + imageName.mid(10,5)
                                         + "/" + imageName + ".jpeg"),"JPEG");
