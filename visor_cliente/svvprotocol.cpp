@@ -50,7 +50,8 @@ bool SvvProtocol::sendPackage(QSslSocket *receptor, QImage &image, QVector<QRect
         size_bytes_image = qToLittleEndian(size_bytes_image);
         receptor->write((const char*)&size_bytes_image, sizeof(quint32));//tamaño image
         //qDebug() << "Enviando Imagen... ";
-        receptor->write(qToLittleEndian(bytes_image), size_bytes_image);                 //image
+        bytes_image = qToLittleEndian(bytes_image);
+        receptor->write(bytes_image, size_bytes_image);                 //image
 
         //
         //
