@@ -1,15 +1,19 @@
 #include "svvprotocol.h"
 
-svvProtocol::svvProtocol(QString idcamera, QDateTime timestamp=QDateTime::currentDateTime()){
+svvProtocol::svvProtocol(QString idcamera, QDateTime timestamp) : QObject(0){
     idprotocol_ =73767637; //svv7 → en hexadecimal
     idcamera_ = idcamera;
     timestamp_ = timestamp;
     state_ = 1;
 }
 
-svvProtocol::svvProtocol(){
+svvProtocol::svvProtocol() : QObject(0){
     idprotocol_ = 73767637; //svv7 → en hexadecimal
     state_ = 1;
+}
+
+svvProtocol::~svvProtocol()
+{
 }
 
 //envia un paquete del protocolo, cabecera, timestamp e imagen
@@ -145,7 +149,7 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
                 buffer.setData(emitter->read(size_image_));
                 image.load(&buffer, "jpeg");
                 state_=1;
-                emit packageCompleted();
+                downloadCompleted();
                 return image;
             }
             break;

@@ -43,8 +43,6 @@ private slots:
 
     void on_actionNetwork_capture_triggered();
 
-    void new_connection();
-
     void read_image();
 
     void save_images(const QImage&);
@@ -57,7 +55,6 @@ private:
     PreferencesDialog *preferences;
     QString ipDir, nPort;
     uint imageNum;
-    QSslSocket *client;
     Server *server;
     QSettings *settings;
     svvProtocol *emitter;

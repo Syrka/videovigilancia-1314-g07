@@ -2,10 +2,9 @@
 
 Server::Server(QObject *parent) : QTcpServer(parent) {
 
-    connect(protocol,SIGNAL(packageComplete()),this,SLOT(downloadedImage());
     settings = new QSettings;
-    settings->setValue("viewer/SSL/key", "~/SSL/server.key");
-    settings->setValue("viewer/SSL/certificate", "~/SSL/server.crt");
+    settings->setValue("viewer/SSL/key", "/usr/local/SSL/server.key");
+    settings->setValue("viewer/SSL/certificate", "/usr/local/SSL/server.crt");
 }
 
 Server::~Server() {
@@ -18,8 +17,8 @@ void Server::incomingConnection(qintptr socketDescriptor) {
     if(socket->setSocketDescriptor(socketDescriptor)) {
         addPendingConnection(socket);
 
-        key = settings->value("viewer/SSL/path").toByteArray();
-        certificate = settings->value("viewer/SSL/certificate").toByteArray();
+        key = settings->value("viewer/SSL/path","/usr/local/SSL").toByteArray();
+        certificate = settings->value("viewer/SSL/certificate","/usr/local/SSL").toByteArray();
 
         QFile file_key(key);
 
@@ -50,46 +49,51 @@ void Server::incomingConnection(qintptr socketDescriptor) {
         qDebug() << "Starting server encryption...";
         socket->startServerEncryption();
 
-        connect(socket, SIGNAL(encrypted()), this, SLOT(signal_to_viewer()));
-
         QList<QSslError> errors;
         errors.append(QSslError::SelfSignedCertificate);
         errors.append(QSslError::CertificateUntrusted);
 
         socket->ignoreSslErrors(errors);
+
+        QSslSocket *current_emitter;
+        svvProtocol *current_protocol;
+        current_protocol = new svvProtocol;
         current_emitter = new QSslSocket(socket);
-        connect(current_emitter, SIGNAL(disconnected()),this,SLOT(disconnect());    //disconected → disconect
-        connect(current_emitter,SIGNAL(readyRead()),this,SLOT(incomingImage());     //readyRead   → incomingImage
-        emitters.append(socket);
+
+        connect(current_emitter, SIGNAL(disconnected()),    this,SLOT(disconnect()));    //disconected → disconect
+        connect(current_emitter, SIGNAL(readyRead()),       this,SLOT(incomingImage()));     //readyRead   → incomingImage de cada socket
+                                                                                    //dynamic_cast<QSslSocket*>(sender()) es el que manda la señal
+        protocol.append(current_protocol);   //añadimos el protocolo
+        emitters.append(current_emitter);            //y el socket correspondiente. Tienen mismo indice
     }
-}
-
-void Server::signal_to_viewer() {
-
-    emit signal();
-}
-
-void Server::connection_failure() {
-
-    qDebug() << "Fallo en la conexion" << current_emitter->errorString();
-    current_emitter->disconnect();
-    current_emitter->deleteLater();
-    current_emitter->ignoreSslErrors();
 }
 
 void Server::disconnect() {
 
-    current_emitter->disconnect();
-    current_emitter->deleteLater();
-    qDebug() << "Conexion cerrada";
+    int index = emitters.indexOf(qobject_cast<QSslSocket*>(sender()));
+    if(index>0 && index<emitters.size()){
+        emitters.removeAt(index);
+        protocol.removeAt(index);
+        qDebug() << "Conexion cerrada";
+    }
+    else{
+        qDebug() << "Server.Error: disconnect()";
+    }
 }
 
 QImage Server::incomingImage(){
     QImage image;
-    if(!current_emitter)
-        return NULL;
+    //calculamos el indice para saber que protocolo usar
+    int index = emitters.indexOf(qobject_cast<QSslSocket*>(sender()));
+    qDebug()<<"Server.incomingImage ...";
+    if(index>0 && emitters[index]->isReadable()){
+        image = protocol[index]->recibePackage(emitters[index]);
+        //protocol[index].getIdCamera();
+        //protocol[index].getTimeStamp();
+    }
+    else{
+        qDebug()<<"Server.Error: incomingImage, can not read from client";
+    }
 
-    image = protocol.recibePackage(current_emitter);
-    //protocol.getIdCamera();
-    //protocol.getTimeStamp();
+    return image;
 }

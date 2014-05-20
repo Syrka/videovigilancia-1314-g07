@@ -15,27 +15,17 @@ public:
     explicit Server(QObject *parent = 0);
     ~Server();
 
-signals:
-    void signal();
-
 public slots:
 
     void incomingConnection(qintptr socketDescriptor);//slot que recibe la señal de que hay una nueva conexion disponible
 
-    QImage incomingImage();
-
-    void connection_failure();
+    QImage incomingImage();//
 
     void disconnect();
 
-    void signal_to_viewer();
-
-    void downloadedImage();
-
 private:
-    svvProtocol protocol;           //se encarga de enviar y recibir los packages, no es el cliente en si mismo, es el protocolo
-    QList<QSslSocket> emitters;     //lista con una serie de emisores, o clientes
-    QSslSocket * current_emitter;   //apunta al emisor o cliente actual
+    QList<svvProtocol*> protocol;    //se encarga de enviar y recibir los packages, no es el cliente en si mismo, es el protocolo (index)
+    QList<QSslSocket*> emitters;     //lista con una serie de emisores, o clientes                                                (index)
     QByteArray key;
     QByteArray certificate;
     QSettings *settings;

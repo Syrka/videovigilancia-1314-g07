@@ -6,7 +6,6 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
     ui(new Ui::ViewerWindow),
     camera(NULL),
     captureBuffer(NULL),
-    client(NULL),
     server(NULL) {
 
         ui->setupUi(this);
@@ -14,7 +13,7 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
         ui->stopButton->hide();
         ui->startButton->hide();
 
-        emitter = new svvProtocol();
+        emitter = new svvProtocol;
 
         settings = new QSettings;
         settings->setValue("viewer/server/ip", "127.0.0.1");
@@ -27,7 +26,6 @@ ViewerWindow::~ViewerWindow() {
     delete ui;
     delete camera;
     delete captureBuffer;
-    delete client;
     delete settings;
 
     if(server != NULL) {
@@ -93,21 +91,10 @@ void ViewerWindow::on_actionNetwork_capture_triggered() {
 
     server = new Server(this);
     server->listen(QHostAddress::Any, nPort.toInt());
-
-    connect(server, SIGNAL(signal()), this, SLOT(new_connection()));
 }
-
-void ViewerWindow::new_connection() {
-
-    client = dynamic_cast<QSslSocket *>(server->nextPendingConnection());
-    connect(client, SIGNAL(readyRead()), this, SLOT(read_image()));
-}
-
 
 void ViewerWindow::read_image() {
-    QImage img = emitter->recibePackage(client);
+    QImage img = server->incomingImage();
     imageNum++;
-    //emitter.getIdCamera();
-    //emitter.getTimeStamp();
     image_slot(img);
 }

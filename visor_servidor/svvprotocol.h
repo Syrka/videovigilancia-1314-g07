@@ -11,11 +11,12 @@
 #include <QtEndian>
 #include <QMessageBox>
 
-class svvProtocol {
-
+class svvProtocol : public QObject {
+    Q_OBJECT
 public:
-    svvProtocol(QString idcamera,QDateTime timestamp);
+    svvProtocol(QString idcamera,QDateTime timestamp=QDateTime::currentDateTime());
     svvProtocol();
+    virtual ~svvProtocol();
     bool sendPackage(QSslSocket *receptor, QImage &image);
     QImage recibePackage(QSslSocket *emitter);//se guarda lo que se recibe en una imagen
     QDateTime getTimeStamp();       //devuelve el timestamp de la ultima foto enviada/recibida
@@ -36,7 +37,7 @@ private:
                 //si 6→ espera tamaño image
                 //si 7→ espera QImage image
 signals:
-    void packageCompleted();
+    void downloadCompleted();
 };
 
 #endif // SVVPROTOCOL_H
