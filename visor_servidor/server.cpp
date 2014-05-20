@@ -2,8 +2,7 @@
 
 Server::Server(QObject *parent) : QTcpServer(parent) {
 
-    socket = new QSslSocket;
-
+    connect(protocol,SIGNAL(packageComplete()),this,SLOT(downloadedImage());
     settings = new QSettings;
     settings->setValue("viewer/SSL/key", "~/SSL/server.key");
     settings->setValue("viewer/SSL/certificate", "~/SSL/server.crt");
@@ -11,12 +10,11 @@ Server::Server(QObject *parent) : QTcpServer(parent) {
 
 Server::~Server() {
 
-    delete socket;
     delete settings;
 }
 
 void Server::incomingConnection(qintptr socketDescriptor) {
-
+    QSslSocket *socket = new QSslSocket;
     if(socket->setSocketDescriptor(socketDescriptor)) {
         addPendingConnection(socket);
 
@@ -30,7 +28,7 @@ void Server::incomingConnection(qintptr socketDescriptor) {
             file_key.close();
         }
         else {
-            qDebug() <<"Error SSL dir: "<< file_key.errorString();
+            qDebug() <<"Error key: "<< file_key.errorString();
         }
 
         QFile file_cert(certificate);
@@ -53,14 +51,16 @@ void Server::incomingConnection(qintptr socketDescriptor) {
         socket->startServerEncryption();
 
         connect(socket, SIGNAL(encrypted()), this, SLOT(signal_to_viewer()));
-        connect(socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(connection_failure()));
-        connect(socket, SIGNAL(disconnected()), this, SLOT(disconnect()));
 
         QList<QSslError> errors;
         errors.append(QSslError::SelfSignedCertificate);
         errors.append(QSslError::CertificateUntrusted);
 
         socket->ignoreSslErrors(errors);
+        current_emitter = new QSslSocket(socket);
+        connect(current_emitter, SIGNAL(disconnected()),this,SLOT(disconnect());    //disconected → disconect
+        connect(current_emitter,SIGNAL(readyRead()),this,SLOT(incomingImage());     //readyRead   → incomingImage
+        emitters.append(socket);
     }
 }
 
@@ -71,15 +71,25 @@ void Server::signal_to_viewer() {
 
 void Server::connection_failure() {
 
-    qDebug() << "Fallo en la conexion" << socket->errorString();
-    socket->disconnect();
-    socket->deleteLater();
-    socket->ignoreSslErrors();
+    qDebug() << "Fallo en la conexion" << current_emitter->errorString();
+    current_emitter->disconnect();
+    current_emitter->deleteLater();
+    current_emitter->ignoreSslErrors();
 }
 
 void Server::disconnect() {
 
-    socket->disconnect();
-    socket->deleteLater();
+    current_emitter->disconnect();
+    current_emitter->deleteLater();
     qDebug() << "Conexion cerrada";
+}
+
+QImage Server::incomingImage(){
+    QImage image;
+    if(!current_emitter)
+        return NULL;
+
+    image = protocol.recibePackage(current_emitter);
+    //protocol.getIdCamera();
+    //protocol.getTimeStamp();
 }

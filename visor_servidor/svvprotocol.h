@@ -35,6 +35,8 @@ private:
                 //si 5→ espera QDateTime en QString timestamp
                 //si 6→ espera tamaño image
                 //si 7→ espera QImage image
+signals:
+    void packageCompleted();
 };
 
 #endif // SVVPROTOCOL_H

@@ -145,10 +145,12 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
                 buffer.setData(emitter->read(size_image_));
                 image.load(&buffer, "jpeg");
                 state_=1;
+                emit packageCompleted();
                 return image;
             }
             break;
         }
     }
+
     return image;
 }
