@@ -1,9 +1,11 @@
 #include "server.h"
-
+#include "svvprotocol.h"
 Server::Server(QObject *parent) : QTcpServer(parent) {
 
     settings = new QSettings;
     settings->setValue("viewer/SSL/key", "/usr/local/SSL/server.key");
+    emitters.clear();
+    protocol.clear();
     settings->setValue("viewer/SSL/certificate", "/usr/local/SSL/server.crt");
 }
 
@@ -55,45 +57,67 @@ void Server::incomingConnection(qintptr socketDescriptor) {
 
         socket->ignoreSslErrors(errors);
 
-        QSslSocket *current_emitter;
         svvProtocol *current_protocol;
         current_protocol = new svvProtocol;
-        current_emitter = new QSslSocket(socket);
 
-        connect(current_emitter, SIGNAL(disconnected()),    this,SLOT(disconnect()));    //disconected → disconect
-        connect(current_emitter, SIGNAL(readyRead()),       this,SLOT(incomingImage()));     //readyRead   → incomingImage de cada socket
-                                                                                    //dynamic_cast<QSslSocket*>(sender()) es el que manda la señal
         protocol.append(current_protocol);   //añadimos el protocolo
-        emitters.append(current_emitter);            //y el socket correspondiente. Tienen mismo indice
+        emitters.append(socket);            //y el socket correspondiente. Tienen mismo indice
+
+        //dynamic_cast<QSslSocket*>(sender()) es el que manda la señal
+        connect(emitters.last(), SIGNAL(disconnected()),    this,SLOT(disconnect()));    //disconected → disconect
+        qDebug() <<"connecting client signal disconnected to server slot disconnect";
+        connect(emitters.last(), SIGNAL(readyRead()),       this,SLOT(incomingImage()));     //readyRead   → incomingImage de cada socket
+        qDebug() <<"connecting client signal readyRead to server slot incomingImage";
     }
 }
 
 void Server::disconnect() {
 
     int index = emitters.indexOf(qobject_cast<QSslSocket*>(sender()));
-    if(index>0 && index<emitters.size()){
+    if(index>=0 && index<emitters.size()){
         emitters.removeAt(index);
         protocol.removeAt(index);
-        qDebug() << "Conexion cerrada";
+        qDebug() << "Conexion cerrada con un cliente";
     }
     else{
         qDebug() << "Server.Error: disconnect()";
     }
 }
 
-QImage Server::incomingImage(){
-    QImage image;
+void Server::incomingImage(){
+
     //calculamos el indice para saber que protocolo usar
     int index = emitters.indexOf(qobject_cast<QSslSocket*>(sender()));
-    qDebug()<<"Server.incomingImage ...";
-    if(index>0 && emitters[index]->isReadable()){
-        image = protocol[index]->recibePackage(emitters[index]);
-        //protocol[index].getIdCamera();
-        //protocol[index].getTimeStamp();
+
+    if(index>=0 && emitters[index]->isReadable()){
+        qDebug()<<"Server.incomingImage";
+        QSslSocket *current_emitter = new QSslSocket(emitters[index]);
+        image = protocol[index]->recibePackage(current_emitter);
+        if(!image.isNull()){ //si tenemos la imagen, avisamos a la ventana para que la guarde
+            emit new_image();
+            idcamera = protocol[index]->getIdCamera();
+            timestamp = protocol[index]->getTimeStamp();
+        }
     }
     else{
-        qDebug()<<"Server.Error: incomingImage, can not read from client";
+        qDebug()<<"Server.Error: incomingImage, can not read from client\nIndex: "<<index;
+        if(emitters[index]->isReadable()){
+            qDebug() <<"Is readable: True";
+        }
+        else{
+            qDebug() <<"Is readable: False";
+        }
     }
+}
 
+QImage Server::getImage(){
     return image;
+}
+
+QString Server::getIdcamera(){
+    return idcamera;
+}
+
+QDateTime Server::getTimestamp(){
+    return timestamp;
 }

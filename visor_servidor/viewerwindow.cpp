@@ -91,10 +91,16 @@ void ViewerWindow::on_actionNetwork_capture_triggered() {
 
     server = new Server(this);
     server->listen(QHostAddress::Any, nPort.toInt());
+    //conectamos la señal new image al slot read_image
+    connect(server,SIGNAL(new_image()),this,SLOT(read_image()));
 }
 
 void ViewerWindow::read_image() {
-    QImage img = server->incomingImage();
+    qDebug() <<"ViewerWindow.read_image()";
+    QImage img = server->getImage();
+    //QString server->getIdcamera();
+    //QDateTime server->getTimestamp();
+    qDebug() <<"image readed!";
     imageNum++;
     image_slot(img);
 }

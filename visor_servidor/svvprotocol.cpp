@@ -47,9 +47,9 @@ bool svvProtocol::sendPackage(QSslSocket *receptor, QImage &image){ //devuelve t
 
         ///enviamos la imagen
         quint32 size_bytes_image = bytes_image.length();
-        qDebug() << "Tamaño de la imagen: " << bytes_image.size();
+        qDebug() << "svvP.Tamaño de la imagen: " << bytes_image.size();
         receptor->write( qToLittleEndian((const char*)&size_bytes_image), sizeof(quint32));//tamaño image
-        qDebug() << "Enviando Imagen... ";
+        qDebug() << "svvP.Enviando Imagen... ";
         receptor->write( qToLittleEndian(bytes_image), size_bytes_image);                  //image
         return true;
     }
@@ -66,10 +66,10 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
     QByteArray bytes_toread;
     qDebug()<<"Recibiendo paquete svvP";
 
-    while(emitter->isReadable()){
+    while(1){
 
         if(state_ == 1){
-            qDebug()<<"Recibiendo cabecera";
+            qDebug()<<"svvP.Recibiendo cabecera";
             if(emitter->bytesAvailable() >= sizeof(quint32)){
                 emitter->read((char *)&idprotocol,sizeof(quint32));
                 idprotocol = qFromLittleEndian(idprotocol);
@@ -83,6 +83,7 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
                    return image;
                 }
             }
+            else break;
         }
 
         if(state_ == 2){
@@ -93,6 +94,7 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
                 qDebug()<<"\t→"<<size_idcamera_;
                 state_++;
             }
+            else break;
         }
 
 
@@ -106,6 +108,7 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
                 qDebug()<<idcamera_;
                 state_++;
             }
+            else break;
         }
 
         if(state_ == 4){
@@ -115,6 +118,7 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
                 size_timestamp_ = qFromLittleEndian(size_timestamp_);
                 state_++;
             }
+            else break;
         }
 
         if(state_ == 5){
@@ -130,6 +134,7 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
                 qDebug()<<timestamp_.toString();
                 state_++;
             }
+            else break;
         }
 
         if(state_ == 6){
@@ -140,6 +145,7 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
                 qDebug() << size_image_;
                 state_++;
             }
+            else break;
         }
 
         if(state_ == 7){
@@ -149,12 +155,19 @@ QImage svvProtocol::recibePackage(QSslSocket *emitter){
                 buffer.setData(emitter->read(size_image_));
                 image.load(&buffer, "jpeg");
                 state_=1;
-                downloadCompleted();
                 return image;
             }
-            break;
+            else break;
         }
     }
 
     return image;
+}
+
+QString svvProtocol::getIdCamera(){
+    return idcamera_;
+}
+
+QDateTime svvProtocol::getTimeStamp(){
+    return timestamp_;
 }
