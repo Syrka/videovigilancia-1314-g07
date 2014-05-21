@@ -91,8 +91,7 @@ void Server::incomingImage(){
 
     if(index>=0 && emitters[index]->isReadable()){
         qDebug()<<"Server.incomingImage";
-        QSslSocket *current_emitter = new QSslSocket(emitters[index]);
-        image = protocol[index]->recibePackage(current_emitter);
+        image = protocol[index]->recibePackage(emitters[index]);
         if(!image.isNull()){ //si tenemos la imagen, avisamos a la ventana para que la guarde
             emit new_image();
             idcamera = protocol[index]->getIdCamera();
