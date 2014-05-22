@@ -4,17 +4,17 @@
 ViewerWindow::ViewerWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::ViewerWindow),
-    movie(NULL),
-    camera(NULL) {
+    movie(NULL) {
+    //camera(NULL)
         ui->setupUi(this);
         ui->stopButton->setEnabled(false);
 
         settings = new QSettings;
         ui->checkBox->setChecked(settings->value("viewer/checkBox", true).toBool());
-        defaultDevice = settings->value("viewer/device", 0).toInt();
-        numDevice = defaultDevice;
+        settings->setValue("viewer/device", 0);
+        numDevice = settings->value("viewer/device").toInt();
         devices = QCamera::availableDevices();
-
+        camera = new QCamera(devices[numDevice]);
         settings->setValue("viewer/server/ip", "127.0.0.1");
         settings->setValue("viewer/server/port", 15000);
 
@@ -104,12 +104,8 @@ void ViewerWindow::on_actionCapturar_triggered() {
     ui->stopButton->hide();
     ui->startButton->hide();
 
-    if (defaultDevice != numDevice) {
-        camera = new QCamera(devices[numDevice]);
-    }
-    else {
-        camera = new QCamera(devices[defaultDevice]);
-    }
+    numDevice = settings->value("viewer/device").toInt();
+    camera = new QCamera(devices[numDevice]);
 
     qDebug() << "Capturando de... "
              << QCamera::deviceDescription(devices[numDevice]);
@@ -172,6 +168,7 @@ void ViewerWindow::on_actionPrefrencias_triggered() {
     if(camera != NULL) {
         camera->stop();
         delete camera;
+        camera = new QCamera(devices[numDevice]);
         on_actionCapturar_triggered();
     }
 }
