@@ -13,7 +13,7 @@ SvvProtocol::SvvProtocol(){
 }
 
 //envia un paquete del protocolo, cabecera, timestamp e imagen
-bool SvvProtocol::sendPackage(QSslSocket *receptor, QImage &image, QVector<QRect> VRect){ //devuelve true si la imagen ha sido enviada
+bool SvvProtocol::sendPackage(QSslSocket *receptor, QImage &image, QVector<QRect> VRect) { //devuelve true si la imagen ha sido enviada
     if(receptor->isWritable()){
 
         QBuffer buffer;
@@ -35,7 +35,7 @@ bool SvvProtocol::sendPackage(QSslSocket *receptor, QImage &image, QVector<QRect
         //qDebug()<<"tamaño idcamera: "<<size_idcamera_;
         size_idcamera_ = qToLittleEndian(size_idcamera_);
         receptor->write((const char *)&size_idcamera_, sizeof(quint32));  //tamaño id camara
-        receptor->write((char *)&idcamera_, size_idcamera_);  //id camara
+        receptor->write((const char *)&idcamera_, size_idcamera_);  //id camara
 
         //timestamp
         QString time_string = timestamp_.toString();
@@ -44,7 +44,7 @@ bool SvvProtocol::sendPackage(QSslSocket *receptor, QImage &image, QVector<QRect
         receptor->write((const char*)&size_timestamp_, sizeof(quint32)); //tamaño timestamp
         receptor->write((const char*)&time_string, size_timestamp_); //timestamp
 
-        ///enviamos la imagen
+        ///enviamos la imagenidcamera_
         quint32 size_bytes_image = bytes_image.length();
         //qDebug() << "Tamaño de la imagen: " << bytes_image.size();
         size_bytes_image = qToLittleEndian(size_bytes_image);

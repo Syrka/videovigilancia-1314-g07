@@ -1,13 +1,13 @@
 #include "svvprotocol.h"
 
-SvvProtocol::SvvProtocol(QString idcamera, QDateTime timestamp=QDateTime::currentDateTime()) {
-    idprotocol_ = 73767637; //svv7 → en hexadecimal
+SvvProtocol::SvvProtocol(QString idcamera, QDateTime timestamp) : QObject(0){
+    idprotocol_ =73767637; //svv7 → en hexadecimal
     idcamera_ = idcamera;
     timestamp_ = timestamp;
     state_ = 1;
 }
 
-SvvProtocol::SvvProtocol() {
+SvvProtocol::SvvProtocol() : QObject(0){
     idprotocol_ = 73767637; //svv7 → en hexadecimal
     state_ = 1;
 }
@@ -45,9 +45,9 @@ bool SvvProtocol::sendPackage(QSslSocket *receptor, QImage &image){ //devuelve t
 
         ///enviamos la imagen
         quint32 size_bytes_image = bytes_image.length();
-        qDebug() << "Tamaño de la imagen: " << bytes_image.size();
+        qDebug() << "svvP.Tamaño de la imagen: " << bytes_image.size();
         receptor->write( qToLittleEndian((const char*)&size_bytes_image), sizeof(quint32));//tamaño image
-        qDebug() << "Enviando Imagen... ";
+        qDebug() << "svvP.Enviando Imagen... ";
         receptor->write( qToLittleEndian(bytes_image), size_bytes_image);                  //image
         return true;
     }
@@ -57,20 +57,19 @@ bool SvvProtocol::sendPackage(QSslSocket *receptor, QImage &image){ //devuelve t
     }
 }
 
+
 //se guarda lo que se recibe en una imagen y se almacena el timestamp y demas info
 QImage SvvProtocol::recibePackage(QSslSocket *emitter){
     quint32 idprotocol;
-    QByteArray bytes_toread;
+    QString bytes_toread;
     qDebug()<<"Recibiendo paquete svv";
 
-    while(emitter->isReadable()){
-
-        if(state_ == 1) {
+    while(1){
+        if(state_ == 1){
             qDebug()<<"Recibiendo cabecera";
-            if(emitter->bytesAvailable() >= sizeof(quint32)) {
+            if(emitter->bytesAvailable() >= sizeof(quint32)){
                 emitter->read((char *)&idprotocol,sizeof(quint32));
                 idprotocol = qFromLittleEndian(idprotocol);
-                //qDebug()<< idprotocol <<" = "<<idprotocol_<< "?";
                 if(idprotocol == idprotocol_) {
                     state_++;
                 }
@@ -80,14 +79,15 @@ QImage SvvProtocol::recibePackage(QSslSocket *emitter){
                     return image_;
                 }
             }
-            else
+            else {
                 break;
+            }
         }
 
         if(state_ == 2) {
             qDebug()<<"Recibiendo tamaño idcamera";
-            if(emitter->bytesAvailable() >= sizeof(qint32)) {
-                emitter->read((char*)&size_idcamera_,sizeof(qint32));
+            if(emitter->bytesAvailable() >= sizeof(quint32)) {
+                emitter->read((char*)&size_idcamera_,sizeof(quint32));
                 size_idcamera_ = qFromLittleEndian (size_idcamera_);
                 state_++;
             }
@@ -173,8 +173,6 @@ QImage SvvProtocol::recibePackage(QSslSocket *emitter){
         }
 
         if(state_ == 9) {
-            qDebug() << nRects;
-            qDebug()<<"Recibiendo X, Y, WIDTH y HEIGHT";
             if(emitter->bytesAvailable() >= (nRects * 4 * sizeof(qint32))) {
 
                 for (uint i = 0; i < nRects; i++) {
@@ -190,30 +188,29 @@ QImage SvvProtocol::recibePackage(QSslSocket *emitter){
                     emitter->read((char*)&height_, sizeof(qint32));
                     height_ = qFromLittleEndian(height_);
 
-                    //qDebug()<< "x" << x_ << "y" << y_ << "width" << width_ << "height" << height_;
-
                     QRect rect_;
                     rect_.setX(x_);
                     rect_.setY(y_);
                     rect_.setWidth(width_);
                     rect_.setHeight(height_);
 
-                    //QVector<QRect> VRect;
-                    //VRect.clear();
                     VRect.push_back(rect_);
-
-                    //emit ready_image(image, VRect);
                 }
                 emit ready_image(image_, VRect);
                 VRect.clear();
-                state_=1;
-                /*qint32 veinte;
-                emitter->read((char*)&veinte, 20);
-             //   qDebug() << "VEINTE" << veinte;*/
+                state_= 1;
             }
             else
-            break;
+                break;
         }
     }
     return image_;
+}
+
+QString SvvProtocol::getIdCamera(){
+    return idcamera_;
+}
+
+QDateTime SvvProtocol::getTimeStamp(){
+    return timestamp_;
 }

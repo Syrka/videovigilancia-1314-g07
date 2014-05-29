@@ -19,7 +19,7 @@ class SvvProtocol : public QObject {
 public:
 
     SvvProtocol();
-    SvvProtocol(QString idcamera,QDateTime timestamp);
+    SvvProtocol(QString idcamera, QDateTime timestamp=QDateTime::currentDateTime());
     ~SvvProtocol();
 
     bool sendPackage(QSslSocket *receptor, QImage &image);
@@ -51,6 +51,8 @@ private:
                 //si 5→ espera QDateTime en QString timestamp
                 //si 6→ espera tamaño image
                 //si 7→ espera QImage image
+signals:
+    void downloadCompleted();
 };
 
 #endif // SVVPROTOCOL_H

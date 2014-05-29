@@ -11,8 +11,6 @@ PreferencesDialog::PreferencesDialog(const QList<QByteArray> &devices, QWidget *
 {
     ui->setupUi(this);
 
-    qDebug() << "Capturando de... "
-             << QCamera::deviceDescription(devices[0]);
     int num = 0;
     while(devices.size() > num) {
         ui->comboCamOptsBox->addItem(QCamera::deviceDescription(devices[num]));
@@ -22,6 +20,18 @@ PreferencesDialog::PreferencesDialog(const QList<QByteArray> &devices, QWidget *
     settings = new QSettings;
     ipDirP = settings->value("viewer/server/ip").toString();
     nPortP = settings->value("viewer/server/port").toString();
+
+    numDevice = settings->value("viewer/device",0).toInt();
+
+    if(numDevice>devices.size()) {
+        ui->comboCamOptsBox->setCurrentIndex(numDevice);
+    }
+    else{
+        ui->comboCamOptsBox->setCurrentIndex(0);
+    }
+
+    qDebug() << "Capturando de... "
+             << QCamera::deviceDescription(devices[numDevice]);
 
     ui->lineEditIp->setText(ipDirP);
     ui->lineEditPort->setText(nPortP);

@@ -4,17 +4,17 @@
 ViewerWindow::ViewerWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::ViewerWindow),
-    movie(NULL),
-    camera(NULL) {
+    movie(NULL) {
+    //camera(NULL)
         ui->setupUi(this);
         ui->stopButton->setEnabled(false);
 
         settings = new QSettings;
         ui->checkBox->setChecked(settings->value("viewer/checkBox", true).toBool());
-        defaultDevice = settings->value("viewer/device", 0).toInt();
-        numDevice = defaultDevice;
+        settings->setValue("viewer/device", 0);
+        numDevice = settings->value("viewer/device").toInt();
         devices = QCamera::availableDevices();
-
+        camera = new QCamera(devices[numDevice]);
         settings->setValue("viewer/server/ip", "127.0.0.1");
         settings->setValue("viewer/server/port", 15000);
 
@@ -123,12 +123,8 @@ void ViewerWindow::on_actionCapturar_triggered() {
     ui->stopButton->hide();
     ui->startButton->hide();
 
-    if (defaultDevice != numDevice) {
-        camera = new QCamera(devices[numDevice]);
-    }
-    else {
-        camera = new QCamera(devices[defaultDevice]);
-    }
+    numDevice = settings->value("viewer/device").toInt();
+    camera = new QCamera(devices[numDevice]);
 
     qDebug() << "Capturando de... "
              << QCamera::deviceDescription(devices[numDevice]);
@@ -158,26 +154,6 @@ void ViewerWindow::on_actionCapturar_triggered() {
 void ViewerWindow::image_slot(const QImage &image) {
 
     emit to_motion_detector(image);
-
-    /*QDateTime time = QDateTime::currentDateTime();
-    QString timeS = time.toString();
-
-    //svvProtocol sendProtocol ("Host",time); //protocolo para enviar las imagenes de la forma correcta
-
-    QPixmap pixmap;
-    pixmap = pixmap.fromImage(image);
-
-    QPainter paint(&pixmap);
-    paint.setPen(Qt::white);
-    paint.drawText(20, 20, timeS);
-
-    //recibir la señal con la imagen procesada
-
-    QImage imageToSend = image;
-    ui->label->setPixmap(pixmap);
-
-    sendProtocol.sendPackage(sslSocket, imageToSend);*/
-
 }
 
 void ViewerWindow::send_processed(const QImage &image, const QVector<QRect> &VRect) {
@@ -215,6 +191,7 @@ void ViewerWindow::on_actionPrefrencias_triggered() {
     if(camera != NULL) {
         camera->stop();
         delete camera;
+        camera = new QCamera(devices[numDevice]);
         on_actionCapturar_triggered();
     }
 }

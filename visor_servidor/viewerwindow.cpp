@@ -6,7 +6,6 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
     ui(new Ui::ViewerWindow),
     camera(NULL),
     captureBuffer(NULL),
-    client(NULL),
     server(NULL) {
 
         ui->setupUi(this);
@@ -21,15 +20,12 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
         settings->setValue("viewer/server/port", 15000);
 
         imageNum = 0;
-
-        connect(emitter, SIGNAL(ready_image(QImage, QVector<QRect>)), this, SLOT(image_slot(QImage, QVector<QRect>)));
 }
 
 ViewerWindow::~ViewerWindow() {
     delete ui;
     delete camera;
     delete captureBuffer;
-    delete client;
     delete settings;
 
     if(server != NULL) {
@@ -74,8 +70,7 @@ void ViewerWindow::save_images(const QImage &image) {
 
     QDir dir(APP_VARDIR);//abrimos el directorio que almacena las imagenes
 
-    dir.mkpath( /*dir.currentPath()*/
-               imageName.mid(0,5)
+    dir.mkpath( imageName.mid(0,5)
                + "/" + imageName.mid(5,5)
                + "/" + imageName.mid(10,5));
 
@@ -99,20 +94,7 @@ void ViewerWindow::on_actionNetwork_capture_triggered() {
 
     server = new Server(this);
     server->listen(QHostAddress::Any, nPort.toInt());
-
-    connect(server, SIGNAL(signal()), this, SLOT(new_connection()));
+    //conectamos la señal new image al slot read_image
+    connect(server,SIGNAL(new_image(QImage,QVector<QRect>)),this,SLOT(image_slot(QImage,QVector<QRect>)));
 }
 
-void ViewerWindow::new_connection() {
-
-    client = dynamic_cast<QSslSocket *>(server->nextPendingConnection());
-    connect(client, SIGNAL(readyRead()), this, SLOT(read_image()));
-}
-
-
-void ViewerWindow::read_image() {
-    QImage img = emitter->recibePackage(client);
-    //emitter.getIdCamera();
-    //emitter.getTimeStamp();
-    //image_slot(img);
-}

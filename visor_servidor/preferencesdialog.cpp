@@ -10,8 +10,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     settings = new QSettings;
     ipDirP = settings->value("viewer/server/ip","127.0.0.1").toString();
     nPortP = settings->value("viewer/server/port","15000").toString();
-    sslPath_ = settings->value("viewer/SSL/path", "~/SSL").toString();
-    sslPath_ = settings->value("viewer/SSL/path", "~/SSL").toString();
+    sslPath_ = settings->value("viewer/SSL/key").toString();
 
     ui->lineEditIp->setText(ipDirP);
     ui->lineEditPort->setText(nPortP);
