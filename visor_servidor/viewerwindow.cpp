@@ -14,13 +14,15 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
         ui->stopButton->hide();
         ui->startButton->hide();
 
-        emitter = new svvProtocol();
+        emitter = new SvvProtocol();
 
         settings = new QSettings;
         settings->setValue("viewer/server/ip", "127.0.0.1");
         settings->setValue("viewer/server/port", 15000);
 
         imageNum = 0;
+
+        connect(emitter, SIGNAL(ready_image(QImage, QVector<QRect>)), this, SLOT(image_slot(QImage, QVector<QRect>)));
 }
 
 ViewerWindow::~ViewerWindow() {
@@ -48,11 +50,16 @@ void ViewerWindow::on_actionAcerca_de_triggered() {
     dialog.exec();
 }
 
-void ViewerWindow::image_slot(const QImage &image) {
+void ViewerWindow::image_slot(const QImage &image, const QVector<QRect> &VRect) {
 
+    imageNum++;
     save_images(image);
     QPixmap pixmap;
     pixmap = pixmap.fromImage(image);
+
+    QPainter paint(&pixmap);
+    paint.setPen(Qt::red);
+    paint.drawRects(VRect);
 
     ui->label->setPixmap(pixmap);
 }
@@ -61,7 +68,6 @@ void ViewerWindow::save_images(const QImage &image) {
 
     qDebug() << imageNum;
     QString imageName, aux;
-    //imageName = QString("%1").arg(imageNum, 32, 16, '0');
 
     imageName.setNum(imageNum, 16);
     imageName = aux.fill('0', 20 - imageName.length()) + imageName;
@@ -106,8 +112,7 @@ void ViewerWindow::new_connection() {
 
 void ViewerWindow::read_image() {
     QImage img = emitter->recibePackage(client);
-    imageNum++;
     //emitter.getIdCamera();
     //emitter.getTimeStamp();
-    image_slot(img);
+    //image_slot(img);
 }

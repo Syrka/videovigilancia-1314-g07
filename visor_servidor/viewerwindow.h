@@ -11,6 +11,7 @@
 #include <QBuffer>
 #include <QDir>
 #include <QSslSocket>
+#include <QPainter>
 
 #include "dialogabout.h"
 #include "preferencesdialog.h"
@@ -37,7 +38,7 @@ private slots:
 
     void on_actionAcerca_de_triggered();
 
-    void image_slot(const QImage&);
+    void image_slot(const QImage&, const QVector<QRect> &VRect);
 
     void on_actionPrefrencias_triggered();
 
@@ -60,7 +61,7 @@ private:
     QSslSocket *client;
     Server *server;
     QSettings *settings;
-    svvProtocol *emitter;
+    SvvProtocol *emitter;
 };
 
 #endif // VIEWERWINDOW_H

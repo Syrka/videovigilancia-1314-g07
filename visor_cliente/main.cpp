@@ -1,6 +1,9 @@
 #include "viewerwindow.h"
 #include <QApplication>
 
+typedef std::vector<std::vector<cv::Point> > ContoursType;
+typedef std::vector<cv::Mat> ImagesType;
+
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
     ViewerWindow w;
