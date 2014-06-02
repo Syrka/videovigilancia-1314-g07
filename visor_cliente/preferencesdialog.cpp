@@ -17,7 +17,7 @@ PreferencesDialog::PreferencesDialog(const QList<QByteArray> &devices, QWidget *
         num++;
     }
 
-    settings = new QSettings;
+    settings = new QSettings(APP_CONFDIR);
     ipDirP = settings->value("viewer/server/ip").toString();
     nPortP = settings->value("viewer/server/port").toString();
 

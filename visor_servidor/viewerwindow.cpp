@@ -15,7 +15,7 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
 
         emitter = new SvvProtocol();
 
-        settings = new QSettings;
+        settings = new QSettings(APP_CONFDIR);
         settings->setValue("viewer/server/ip", "127.0.0.1");
         settings->setValue("viewer/server/port", 15000);
 

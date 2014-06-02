@@ -7,7 +7,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    settings = new QSettings;
+    settings = new QSettings(APP_CONFDIR);
     ipDirP = settings->value("viewer/server/ip","127.0.0.1").toString();
     nPortP = settings->value("viewer/server/port","15000").toString();
     sslPath_ = settings->value("viewer/SSL/key").toString();
