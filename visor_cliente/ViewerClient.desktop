@@ -1,7 +1,0 @@
-Version=1
-Type=Application
-Terminal=false
-Comment=Sistema de Video Vigilancia
-Icon=/usr/local/share/icons/hicolor/32x32/apps/ViewerClient.png
-Name=ViewerClient
-Exec= /usr/local/bin/ViewerClient
