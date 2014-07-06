@@ -20,6 +20,37 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
         settings->setValue("viewer/server/port", 15000);
 
         imageNum = 0;
+
+/////////
+///////// SQLITE
+/////////
+
+        db = QSqlDatabase::addDatabase("QSQLITE");
+        db.setDatabaseName("data.sqlite");
+
+        if (!db.open()) {
+            QMessageBox::critical(NULL, tr("Error"),
+                                  tr("No se pudo acceder a los datos"));
+        }
+
+        // Datos nombre de tabla1 para id, timestamp, imagen, numero de roi
+        QSqlQuery query_1;
+        query_1.exec("CREATE TABLE IF NOT EXISTS Datos "
+                     "(id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                     " idcamera VARCHAR(40), "
+                     " timestamp LONG, "
+                     " image VARCHAR(200))"
+        );
+
+        QSqlQuery query_2;
+        query_2.exec("CREATE TABLE IF NOT EXISTS ROI "
+                     "(id INTEGER PRIMARY KEY, "
+                     " x LONG, "
+                     " y LONG, "
+                     " width LONG, "
+                     " height LONG )"
+        );
+
 }
 
 ViewerWindow::~ViewerWindow() {
@@ -62,7 +93,7 @@ void ViewerWindow::image_slot(const QImage &image, const QVector<QRect> &VRect) 
 
 void ViewerWindow::save_images(const QImage &image) {
 
-    qDebug() << imageNum;
+    //qDebug() << imageNum;
     QString imageName, aux;
 
     imageName.setNum(imageNum, 16);

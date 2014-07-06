@@ -11,6 +11,9 @@
 #include <QImageWriter>
 #include <QtEndian>
 #include <QMessageBox>
+#include <QSqlQuery>
+#include <QSqlRecord>
+#include <QSqlDatabase>
 
 class SvvProtocol : public QObject {
 

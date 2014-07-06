@@ -66,7 +66,7 @@ QImage SvvProtocol::recibePackage(QSslSocket *emitter){
 
     while(1){
         if(state_ == 1){
-            qDebug()<<"Recibiendo cabecera";
+            //qDebug()<<"Recibiendo cabecera";
             if(emitter->bytesAvailable() >= sizeof(quint32)){
                 emitter->read((char *)&idprotocol,sizeof(quint32));
                 idprotocol = qFromLittleEndian(idprotocol);
@@ -85,7 +85,7 @@ QImage SvvProtocol::recibePackage(QSslSocket *emitter){
         }
 
         if(state_ == 2) {
-            qDebug()<<"Recibiendo tamaño idcamera";
+            //qDebug()<<"Recibiendo tamaño idcamera";
             if(emitter->bytesAvailable() >= sizeof(quint32)) {
                 emitter->read((char*)&size_idcamera_,sizeof(quint32));
                 size_idcamera_ = qFromLittleEndian (size_idcamera_);
@@ -97,7 +97,7 @@ QImage SvvProtocol::recibePackage(QSslSocket *emitter){
         }
 
         if(state_ == 3) {
-            qDebug()<<"Recibiendo idcamera";
+            //qDebug()<<"Recibiendo idcamera";
             if(emitter->bytesAvailable() >= size_idcamera_) {
                 bytes_toread = emitter->read(size_idcamera_);
                 idcamera_ = bytes_toread;
@@ -109,7 +109,7 @@ QImage SvvProtocol::recibePackage(QSslSocket *emitter){
         }
 
         if(state_ == 4){
-            qDebug()<<"Recibiendo tamaño timestamp";
+            //qDebug()<<"Recibiendo tamaño timestamp";
             if(emitter->bytesAvailable() >= sizeof(qint32)){
                 emitter->read((char*)&size_timestamp_, sizeof(qint32));
                 size_timestamp_ = qFromLittleEndian(size_timestamp_);
@@ -121,7 +121,7 @@ QImage SvvProtocol::recibePackage(QSslSocket *emitter){
         }
 
         if(state_ == 5){
-            qDebug()<<"Recibiendo timestamp";
+            //qDebug()<<"Recibiendo timestamp";
             if(emitter->bytesAvailable() >= size_timestamp_){
                 QString time_string;
                 bytes_toread = emitter->read(size_timestamp_);
@@ -135,7 +135,7 @@ QImage SvvProtocol::recibePackage(QSslSocket *emitter){
         }
 
         if(state_ == 6) {
-            qDebug()<<"Recibiendo tamaño imagen";
+            //qDebug()<<"Recibiendo tamaño imagen";
             if(emitter->bytesAvailable() >= sizeof(qint32)) {
                 emitter->read((char *)&size_image_, sizeof(qint32));
                 size_image_ = qFromLittleEndian(size_image_);
@@ -148,7 +148,7 @@ QImage SvvProtocol::recibePackage(QSslSocket *emitter){
         }
 
         if(state_ == 7) {
-            qDebug()<<"Recibiendo imagen";
+            //qDebug()<<"Recibiendo imagen";
             if(emitter->bytesAvailable() >= size_image_) {
                 QBuffer buffer;
                 buffer.setData(emitter->read(size_image_));
@@ -161,10 +161,10 @@ QImage SvvProtocol::recibePackage(QSslSocket *emitter){
        }
 
        if(state_ == 8) {
-            qDebug()<<"Recibiendo nRects";
+            //qDebug()<<"Recibiendo nRects";
             if(emitter->bytesAvailable() >= sizeof(qint32)) {
                 emitter->read((char*)&nRects, sizeof(qint32));
-                qDebug() << nRects;
+                //qDebug() << nRects;
                 state_++;
             }
             else {
@@ -199,6 +199,62 @@ QImage SvvProtocol::recibePackage(QSslSocket *emitter){
                 emit ready_image(image_, VRect);
                 VRect.clear();
                 state_= 1;
+                ///////
+                ///
+                ///
+                ///
+                ///
+                ///
+                ///////////////////////////////////////////////////////////////////////////////////
+
+
+                QSqlQuery query;
+                QSqlQuery("PRAGMA journal_mode = OFF");
+                QSqlQuery("PRAGMA locking_mode = EXCLUSIVE");
+                QSqlQuery("PRAGMA synchronous = OFF");
+
+                query.prepare("INSERT INTO Datos (idcamera_, timestamp_, image_) "
+                              "VALUES (:idcamera_, :timestamp_, :image_)");
+
+                //qDebug()<<"guardando nameclient";
+                query.bindValue(":idcamera_", idcamera_);
+                //qDebug()<<"guardando timestamp";
+                query.bindValue(":timestamp_", timestamp_);
+                //qDebug()<<"guardando imageroute";
+                query.bindValue(":image_", image_);
+
+                query.exec();
+
+                int ultimoId = query.lastInsertId().toInt();
+
+                foreach(QRect rect, VRect) {
+
+                    QSqlQuery query2;
+                    query2.prepare("INSERT INTO ROI (x, y, w, h, link) "
+                                   "VALUES (:x, :y, :w, :h, :link)");
+
+                    //qDebug()<<"Guardando link";
+                    query2.bindValue(":link", ultimoId);
+                    //qDebug()<<"Guardando x";
+                    query2.bindValue(":x", rect.x());
+                    //qDebug()<<"Guardando y";
+                    query2.bindValue(":y", rect.y());
+                    //qDebug()<<"Guardando width";
+                    query2.bindValue(":w", rect.width());
+                    //qDebug()<<"Guardando heigth";
+                    query2.bindValue(":h", rect.height());
+
+                    query2.exec();
+
+                }
+
+                qDebug()<<"Stored values in database.";
+
+                ///
+                ///
+                ///
+                ///
+                ///
             }
             else
                 break;

@@ -12,6 +12,8 @@
 #include <QDir>
 #include <QSslSocket>
 #include <QPainter>
+#include <QSqlDatabase>
+#include <QSqlQuery>
 
 #include "dialogabout.h"
 #include "preferencesdialog.h"
@@ -59,6 +61,7 @@ private:
     Server *server;
     QSettings *settings;
     SvvProtocol *emitter;
+    QSqlDatabase db;
 };
 
 #endif // VIEWERWINDOW_H

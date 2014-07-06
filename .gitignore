@@ -3,11 +3,11 @@
 *.o*
 *moc_*
 Makefile
-ViewerClient
-ViewerServer
+ViewerClient*
+ViewerServer*
 *.autosave
 *.gitignore*
-*.pro*
 build*
 *.conf
 *.png
+VentanaCliente*
