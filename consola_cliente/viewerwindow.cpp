@@ -1,15 +1,48 @@
 #include "viewerwindow.h"
 #include "ui_viewerwindow.h"
 
+int ViewerWindow::sigHupSd[2];
+int ViewerWindow::sigTermSd[2];
+int ViewerWindow::sigIntSd[2];
+
 ViewerWindow::ViewerWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::ViewerWindow),
     movie(NULL) {
-    //camera(NULL)
+
+    ///
+    // Crear las parejas de sockets UNIX
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sigHupSd))
+        qFatal("Couldn't create HUP socketpair");
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sigTermSd))
+        qFatal("Couldn't create TERM socketpair");
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sigIntSd))
+        qFatal("Couldn't create INT socketpair");
+
+    // Crear los objetos para monitorizar uno de los socket de cada pareja
+    sigHupNotifier = new QSocketNotifier(sigHupSd[1],
+        QSocketNotifier::Read, this);
+    sigTermNotifier = new QSocketNotifier(sigTermSd[1],
+        QSocketNotifier::Read, this);
+    sigIntNotifier = new QSocketNotifier(sigIntSd[1],
+        QSocketNotifier::Read, this);
+
+    // Conectar la señal activated() de cada objeto
+    // QSocketNotifier con el slot correspondiente. Esta señal
+    // será emitida cuando hayan datos para ser leidos en el
+    // socket monitorizado.
+    connect(sigHupNotifier, SIGNAL(activated(int)), this,
+        SLOT(handleSigHup()));
+    connect(sigTermNotifier, SIGNAL(activated(int)), this,
+        SLOT(handleSigTerm()));
+    connect(sigIntNotifier, SIGNAL(activated(int)), this,
+        SLOT(handleSigInt()));
+    ///
+
         ui->setupUi(this);
         ui->stopButton->setEnabled(false);
 
-        settings = new QSettings;
+        settings = new QSettings(APP_CONFDIR);
         ui->checkBox->setChecked(settings->value("viewer/checkBox", true).toBool());
         settings->setValue("viewer/device", 0);
         numDevice = settings->value("viewer/device").toInt();
@@ -108,11 +141,6 @@ void ViewerWindow::on_checkBox_stateChanged() {
     settings->setValue("viewer/checkBox", ui->checkBox->isChecked());
 }
 
-void ViewerWindow::on_actionAcerca_de_triggered() {
-    DialogAbout dialog(this);
-    dialog.exec();
-}
-
 //
 // Captura de Webcam
 //
@@ -181,17 +209,62 @@ void ViewerWindow::connected() {
         camera->start();
 }
 
-void ViewerWindow::on_actionPrefrencias_triggered() {
+// Manejadores de las señales SIGHUP, SIGTERM y SIGINT
+void ViewerWindow::hupSignalHandler(int) {
+    char a = 1;
+    write(sigHupSd[0], &a, sizeof(a));
+}
 
-    preferences = new PreferencesDialog(devices);
-    preferences->exec();
+void ViewerWindow::termSignalHandler(int) {
+    char a = 1;
+    write(sigTermSd[0], &a, sizeof(a));
+}
 
-    numDevice = settings->value("viewer/device").toInt();
+void ViewerWindow::intSignalHandler(int) {
+    char a = 1;
+    write(sigIntSd[0], &a, sizeof(a));
+}
 
-    if(camera != NULL) {
-        camera->stop();
-        delete camera;
-        camera = new QCamera(devices[numDevice]);
-        on_actionCapturar_triggered();
-    }
+void ViewerWindow::handleSigHup() {
+    //Desactivar la monitorizacion para que por el momento no lleguen mas señales de QT
+    sigHupNotifier->setEnabled(false);
+
+    //Leer y desechar el byte enviado
+    char tmp;
+    read(sigHupSd[1], &tmp, sizeof(tmp));
+
+    //CODIGO DE LA SEÑAL
+
+    //Activar de nuevo la monitorizacion
+    sigHupNotifier->setEnabled(true);
+}
+
+void ViewerWindow::handleSigInt() {
+    //Desactivar la monitorizacion para que por el momento no lleguen mas señales de QT
+    sigIntNotifier->setEnabled(false);
+
+    //Leer y desechar el byte enviado
+    char tmp;
+    read(sigIntSd[1], &tmp, sizeof(tmp));
+
+    //CODIGO DE LA SEÑAL
+
+    //Activar de nuevo la monitorizacion
+    sigIntNotifier->setEnabled(true);
+}
+
+void ViewerWindow::handleSigTerm() {
+    //Desactivar la monitorizacion para que por el momento no lleguen mas señales de QT
+    sigTermNotifier->setEnabled(false);
+
+    //Leer y desechar el byte enviado
+    char tmp;
+    read(sigTermSd[1], &tmp, sizeof(tmp));
+
+    //CODIGO DE LA SEÑAL
+    sslSocket->disconnect();
+    QCoreApplication::quit();
+
+    //Activar de nuevo la monitorizacion
+    sigTermNotifier->setEnabled(true);
 }

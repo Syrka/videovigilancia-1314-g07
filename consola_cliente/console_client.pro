@@ -16,22 +16,16 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         viewerwindow.cpp \
-    dialogabout.cpp \
     capturebuffer.cpp \
-    preferencesdialog.cpp \
     svvprotocol.cpp \
     motiondetector.cpp
 
 HEADERS  += viewerwindow.h \
-    dialogabout.h \
     capturebuffer.h \
-    preferencesdialog.h \
     svvprotocol.h \
     motiondetector.h
 
-FORMS    += viewerwindow.ui \
-    dialogabout.ui \
-    preferencesdialog.ui
+FORMS    += viewerwindow.ui
 
 include(QtOpenCV.pri)
 add_opencv_modules(core video imgproc)

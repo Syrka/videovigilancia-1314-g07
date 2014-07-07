@@ -16,9 +16,11 @@
 #include <QImageWriter>
 #include <QSslSocket>
 #include <QThread>
+#include <QSocketNotifier>
+#include <sys/socket.h>
+#include <signal.h>
+#include <unistd.h>
 
-#include "dialogabout.h"
-#include "preferencesdialog.h"
 #include "capturebuffer.h"
 #include "svvprotocol.h"
 #include "motiondetector.h"
@@ -37,6 +39,17 @@ class ViewerWindow : public QMainWindow
 public:
     explicit ViewerWindow(QWidget *parent = 0);
     ~ViewerWindow();
+
+    //Manejadores de señal POSIX
+    //Debe ser static para poder pasar el metodo como manejador al invocar signal()
+    static void hupSignalHandler(int unused);
+    static void termSignalHandler(int unused);
+    static void intSignalHandler(int unused);
+
+public slots:
+    void handleSigHup();
+    void handleSigTerm();
+    void handleSigInt();
     
 private slots:
     void on_Quit_clicked();
@@ -53,13 +66,9 @@ private slots:
 
     void on_checkBox_stateChanged();
 
-    void on_actionAcerca_de_triggered();
-
     void on_actionCapturar_triggered();
 
     void image_slot(const QImage&);
-
-    void on_actionPrefrencias_triggered();
 
     void connected();
 
@@ -70,7 +79,6 @@ private:
     QMovie *movie;
     QCamera *camera;
     CaptureBuffer *captureBuffer;
-    PreferencesDialog *preferences;
     QList<QByteArray> devices;
     int numDevice, defaultDevice;
     QSslSocket *sslSocket;
@@ -78,6 +86,16 @@ private:
     QSettings *settings;
     MotionDetector *motionDetector;
     QThread *motionThread;
+
+    //Pareja de sockets. Un par por señal a manejar
+    static int sigHupSd[2];
+    static int sigTermSd[2];
+    static int sigIntSd[2];
+
+    //Objeto para monitorizar la pareja de sockets
+    QSocketNotifier *sigHupNotifier;
+    QSocketNotifier *sigTermNotifier;
+    QSocketNotifier *sigIntNotifier;
 
 signals:
     void to_motion_detector(const QImage &image);
