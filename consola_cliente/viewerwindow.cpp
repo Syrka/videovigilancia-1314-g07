@@ -1,15 +1,13 @@
 #include "viewerwindow.h"
-#include "ui_viewerwindow.h"
 
 int ViewerWindow::sigHupSd[2];
 int ViewerWindow::sigTermSd[2];
 int ViewerWindow::sigIntSd[2];
 
-ViewerWindow::ViewerWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::ViewerWindow),
-    movie(NULL) {
+ViewerWindow::ViewerWindow() {
 
+    camera = NULL;
+    captureBuffer = NULL;
     ///
     // Crear las parejas de sockets UNIX
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, sigHupSd))
@@ -17,7 +15,7 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, sigTermSd))
         qFatal("Couldn't create TERM socketpair");
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, sigIntSd))
-        qFatal("Couldn't create INT socketpair");
+        qFatal("Couldn't create INT socketpair");    
 
     // Crear los objetos para monitorizar uno de los socket de cada pareja
     sigHupNotifier = new QSocketNotifier(sigHupSd[1],
@@ -39,11 +37,7 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
         SLOT(handleSigInt()));
     ///
 
-        ui->setupUi(this);
-        ui->stopButton->setEnabled(false);
-
         settings = new QSettings(APP_CONFDIR);
-        ui->checkBox->setChecked(settings->value("viewer/checkBox", true).toBool());
         settings->setValue("viewer/device", 0);
         numDevice = settings->value("viewer/device").toInt();
         devices = QCamera::availableDevices();
@@ -65,6 +59,8 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
                 this, SLOT(send_processed(QImage, QVector<QRect>)));
 
         motionThread->start();
+
+        on_actionCapturar_triggered();
 }
 
 ViewerWindow::~ViewerWindow() {
@@ -73,72 +69,14 @@ ViewerWindow::~ViewerWindow() {
     motionThread->wait();
     delete motionThread;
 
-    delete ui;
-    delete movie;
     delete camera;
     delete sslSocket;
     delete settings;
     delete motionDetector;
-}
 
-void ViewerWindow::on_Quit_clicked() {
-    qApp->quit();
-}
-
-void ViewerWindow::on_actionSalir_triggered() {
-    qApp->quit();
-}
-
-//
-// Visor de video
-//
-
-void ViewerWindow::on_actionAbrir_triggered() {
-    QString filename = QFileDialog::getOpenFileName(this, "Abrir video", QString(), "Videos (*.mjpeg)");
-
-    if(camera != NULL) {
-        ui->startButton->setEnabled(true);
-        delete camera;
-    }
-
-    if(!filename.isEmpty()) {
-        QFile file(filename);
-        if(!file.open(QIODevice::ReadOnly)) {
-            QMessageBox::information(this, "Abrir archivo", "El archivo no pudo ser abierto");
-        }
-        else {
-            movie = new QMovie(filename);
-            ui->stopButton->setEnabled(true);
-            connect(movie, SIGNAL(updated(const QRect&)),
-                    this, SLOT(en_movie_updated()));
-            if(ui->checkBox->isChecked()) {
-                movie->start();
-            }
-        }
-    }
-}
-
-void ViewerWindow::on_startButton_clicked() {
-    if (movie->state() == 1 || movie->state() == 0){
-        movie->start();
-    }
-    else {
-        movie->setPaused(true);
-    }
-}
-
-void ViewerWindow::on_stopButton_clicked() {
-    movie->stop();
-}
-
-void ViewerWindow::en_movie_updated() {
-    QPixmap pixmap = movie->currentPixmap();
-    ui->label->setPixmap(pixmap);
-}
-
-void ViewerWindow::on_checkBox_stateChanged() {
-
-    settings->setValue("viewer/checkBox", ui->checkBox->isChecked());
+    delete sigHupNotifier;
+    delete sigTermNotifier;
+    delete sigIntNotifier;
 }
 
 //
@@ -146,10 +84,6 @@ void ViewerWindow::on_checkBox_stateChanged() {
 //
 
 void ViewerWindow::on_actionCapturar_triggered() {
-
-    ui->checkBox->hide();
-    ui->stopButton->hide();
-    ui->startButton->hide();
 
     numDevice = settings->value("viewer/device").toInt();
     camera = new QCamera(devices[numDevice]);
@@ -187,19 +121,10 @@ void ViewerWindow::image_slot(const QImage &image) {
 void ViewerWindow::send_processed(const QImage &image, const QVector<QRect> &VRect) {
 
     QDateTime time = QDateTime::currentDateTime();
-    QString timeS = time.toString();
 
     SvvProtocol sendProtocol ("Host",time); //protocolo para enviar las imagenes de la forma correcta
 
-    QPixmap pixmap;
-    pixmap = pixmap.fromImage(image);
-
-    QPainter paint(&pixmap);
-    paint.setPen(Qt::white);
-    paint.drawText(20, 20, timeS);
-
     QImage imageToSend = image;
-    ui->label->setPixmap(pixmap);
 
     sendProtocol.sendPackage(sslSocket, imageToSend, VRect);
 }
@@ -248,6 +173,8 @@ void ViewerWindow::handleSigInt() {
     read(sigIntSd[1], &tmp, sizeof(tmp));
 
     //CODIGO DE LA SEÑAL
+    sslSocket->disconnect();
+    QCoreApplication::quit();
 
     //Activar de nuevo la monitorizacion
     sigIntNotifier->setEnabled(true);
@@ -267,4 +194,47 @@ void ViewerWindow::handleSigTerm() {
 
     //Activar de nuevo la monitorizacion
     sigTermNotifier->setEnabled(true);
+}
+
+//
+// Configurar los manejadores de señal
+//
+int setupUnixSignalHandlers() {
+    struct ::sigaction term_, hup_, int_;
+
+    ///TERM
+    term_.sa_handler = &ViewerWindow::termSignalHandler;
+
+    //Vaciamos la mascara para indicar que no queremos bloquear la
+    //llegada de ninguna señal POSIX
+    sigemptyset(&term_.sa_mask);
+
+    //SA_RESTART indica que si la señal interrumpe llamadas al sist. lanzada
+    // desde otro sitio, al volver del manejador, la llamada debe continuar.
+    // Si no la llamada retorna indicando un error
+    term_.sa_flags = SA_RESTART;
+
+    // Establecer manejador de la señal SIGTERM
+    if (sigaction(SIGTERM, &term_, 0) > 0)
+    return 1;
+
+    ///HUP
+    hup_.sa_handler = &ViewerWindow::hupSignalHandler;
+    sigemptyset(&hup_.sa_mask);
+    hup_.sa_flags = SA_RESTART;
+
+    // Establecer manejador de la señal SIGHUP
+    if (sigaction(SIGHUP, &hup_, 0) > 0)
+    return 2;
+
+    ///INT
+    int_.sa_handler = &ViewerWindow::intSignalHandler;
+    sigemptyset(&int_.sa_mask);
+    int_.sa_flags = SA_RESTART;
+
+    // Establecer manejador de la señal SIGINT
+    if (sigaction(SIGINT, &int_, 0) > 0)
+    return 3;
+
+    return 0;
 }

@@ -1,5 +1,4 @@
 #include "viewerwindow.h"
-#include <QApplication>
 #include <QCoreApplication>
 #include <iostream>
 #include <QSettings>
@@ -8,10 +7,6 @@ typedef std::vector<std::vector<cv::Point> > ContoursType;
 typedef std::vector<cv::Mat> ImagesType;
 
 int main(int argc, char *argv[]) {
-    QCoreApplication a(argc, argv);
-
-    //DELETE THIS
-    QApplication a_(argc, argv);
 
     QCoreApplication::setOrganizationName("Videovigilancia");
     QCoreApplication::setOrganizationDomain("https://github.com/ull-etsii-sistemas-operativos/videovigilancia-1314-g07");
@@ -38,23 +33,22 @@ int main(int argc, char *argv[]) {
             if (strcmp(argv[i],"D") == 0) {
                  QString aux = argv[i+1];
                  numDevice = aux.toInt();
+                 settings.setValue("viewer/device", numDevice);
             }
             if(strcmp(argv[i],"P") == 0) {
                  nPort = argv[i+1];
+                 settings.setValue("viewer/server/port", nPort);
             }
             if(strcmp(argv[i],"IP") == 0) {
                  ipDir = argv[i+1];
+                 settings.setValue("viewer/server/ip", ipDir);
             }
         }
     }
 
-    /*
-    Console m(host,port.toInt(),nameClient, disp.toInt());
-    setupUnixSignalHandlers();
-    */
-
+    QCoreApplication a(argc, argv);
     ViewerWindow w;
-    w.show();
+    setupUnixSignalHandlers();
 
     return a.exec();
 }

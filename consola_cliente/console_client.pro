@@ -12,7 +12,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = consola_client
 TEMPLATE = app
-
+CONFIG += console
+CONFIG -= app_bundle
 
 SOURCES += main.cpp\
         viewerwindow.cpp \
@@ -25,7 +26,7 @@ HEADERS  += viewerwindow.h \
     svvprotocol.h \
     motiondetector.h
 
-FORMS    += viewerwindow.ui
+FORMS    +=
 
 include(QtOpenCV.pri)
 add_opencv_modules(core video imgproc)

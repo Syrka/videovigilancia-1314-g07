@@ -20,6 +20,7 @@
 #include <sys/socket.h>
 #include <signal.h>
 #include <unistd.h>
+#include <QCoreApplication>
 
 #include "capturebuffer.h"
 #include "svvprotocol.h"
@@ -28,16 +29,12 @@
 typedef std::vector<cv::Mat> ImagesType;
 typedef std::vector<std::vector<cv::Point> > ContoursType;
 
-namespace Ui {
-class ViewerWindow;
-}
-
-class ViewerWindow : public QMainWindow
+class ViewerWindow : public QObject
 {
     Q_OBJECT
     
 public:
-    explicit ViewerWindow(QWidget *parent = 0);
+    explicit ViewerWindow();
     ~ViewerWindow();
 
     //Manejadores de señal POSIX
@@ -52,19 +49,6 @@ public slots:
     void handleSigInt();
     
 private slots:
-    void on_Quit_clicked();
-
-    void on_actionSalir_triggered();
-
-    void on_actionAbrir_triggered();
-
-    void on_startButton_clicked();
-
-    void on_stopButton_clicked();
-
-    void en_movie_updated();
-
-    void on_checkBox_stateChanged();
 
     void on_actionCapturar_triggered();
 
@@ -75,8 +59,6 @@ private slots:
     void send_processed(const QImage &image, const QVector<QRect> &VRect);
 
 private:
-    Ui::ViewerWindow *ui;
-    QMovie *movie;
     QCamera *camera;
     CaptureBuffer *captureBuffer;
     QList<QByteArray> devices;
@@ -101,5 +83,7 @@ signals:
     void to_motion_detector(const QImage &image);
 
 };
+
+int setupUnixSignalHandlers();
 
 #endif // VIEWERWINDOW_H
