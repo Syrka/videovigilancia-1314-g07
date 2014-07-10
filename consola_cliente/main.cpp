@@ -1,4 +1,4 @@
-#include "viewerwindow.h"
+#include "clientconsole.h"
 #include <QCoreApplication>
 #include <iostream>
 #include <QSettings>
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
     }
 
     QCoreApplication a(argc, argv);
-    ViewerWindow w;
+    ClientConsole c;
     setupUnixSignalHandlers();
 
     return a.exec();

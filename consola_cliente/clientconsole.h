@@ -1,17 +1,9 @@
-#ifndef VIEWERWINDOW_H
-#define VIEWERWINDOW_H
+#ifndef CLIENTCONSOLE_H
+#define CLIENTCONSOLE_H
 
-#include <QMainWindow>
-#include <QFileDialog>
-#include <QFile>
-#include <QTextStream>
 #include <QMessageBox>
-#include <QMovie>
 #include <QSettings>
 #include <QCamera>
-#include <QTime>
-#include <QPainter>
-#include <QTcpSocket>
 #include <QBuffer>
 #include <QImageWriter>
 #include <QSslSocket>
@@ -29,13 +21,15 @@
 typedef std::vector<cv::Mat> ImagesType;
 typedef std::vector<std::vector<cv::Point> > ContoursType;
 
-class ViewerWindow : public QObject
+int setupUnixSignalHandlers();
+
+class ClientConsole : public QObject
 {
     Q_OBJECT
     
 public:
-    explicit ViewerWindow();
-    ~ViewerWindow();
+    explicit ClientConsole();
+    ~ClientConsole();
 
     //Manejadores de señal POSIX
     //Debe ser static para poder pasar el metodo como manejador al invocar signal()
@@ -84,6 +78,4 @@ signals:
 
 };
 
-int setupUnixSignalHandlers();
-
-#endif // VIEWERWINDOW_H
+#endif // CLIENTCONSOLE_H

@@ -1,13 +1,14 @@
-#include "viewerwindow.h"
+#include "clientconsole.h"
 
-int ViewerWindow::sigHupSd[2];
-int ViewerWindow::sigTermSd[2];
-int ViewerWindow::sigIntSd[2];
+int ClientConsole::sigHupSd[2];
+int ClientConsole::sigTermSd[2];
+int ClientConsole::sigIntSd[2];
 
-ViewerWindow::ViewerWindow() {
+ClientConsole::ClientConsole() {
 
     camera = NULL;
     captureBuffer = NULL;
+
     ///
     // Crear las parejas de sockets UNIX
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, sigHupSd))
@@ -63,16 +64,21 @@ ViewerWindow::ViewerWindow() {
         on_actionCapturar_triggered();
 }
 
-ViewerWindow::~ViewerWindow() {
+ClientConsole::~ClientConsole() {
 
     motionThread->quit();
     motionThread->wait();
     delete motionThread;
 
-    delete camera;
-    delete sslSocket;
+    if(camera)
+        delete camera;
+
+    if(sslSocket)
+        delete sslSocket;
     delete settings;
-    delete motionDetector;
+
+    if(motionDetector)
+        delete motionDetector;
 
     delete sigHupNotifier;
     delete sigTermNotifier;
@@ -83,7 +89,7 @@ ViewerWindow::~ViewerWindow() {
 // Captura de Webcam
 //
 
-void ViewerWindow::on_actionCapturar_triggered() {
+void ClientConsole::on_actionCapturar_triggered() {
 
     numDevice = settings->value("viewer/device").toInt();
     camera = new QCamera(devices[numDevice]);
@@ -102,55 +108,49 @@ void ViewerWindow::on_actionCapturar_triggered() {
     sslSocket->connectToHostEncrypted(ipDir, nPort.toInt());
     sslSocket->ignoreSslErrors();
 
-    qDebug() << "Estado del Socket:"
-             << sslSocket->state();
-    if(sslSocket->state() != 3 && sslSocket->state() != 4)
-        qDebug() << "Error:"
-                 << sslSocket->errorString();
-
     connect(captureBuffer, SIGNAL(image_signal(QImage)), this, SLOT(image_slot(QImage)));
     connect(sslSocket, SIGNAL(encrypted()), this, SLOT(connected()));
 
 }
 
-void ViewerWindow::image_slot(const QImage &image) {
+void ClientConsole::image_slot(const QImage &image) {
 
     emit to_motion_detector(image);
 }
 
-void ViewerWindow::send_processed(const QImage &image, const QVector<QRect> &VRect) {
+void ClientConsole::send_processed(const QImage &image, const QVector<QRect> &VRect) {
 
     QDateTime time = QDateTime::currentDateTime();
-
     SvvProtocol sendProtocol ("Host",time); //protocolo para enviar las imagenes de la forma correcta
-
     QImage imageToSend = image;
 
     sendProtocol.sendPackage(sslSocket, imageToSend, VRect);
 }
 
-void ViewerWindow::connected() {
+void ClientConsole::connected() {
         qDebug() << "Conectado";
+        qDebug() << "IP: " << ipDir << "Puerto: " << nPort;
+        qDebug() << "Enviando protocolo e imagenes procesadas...";
         camera->start();
 }
 
 // Manejadores de las señales SIGHUP, SIGTERM y SIGINT
-void ViewerWindow::hupSignalHandler(int) {
+void ClientConsole::hupSignalHandler(int) {
     char a = 1;
     write(sigHupSd[0], &a, sizeof(a));
 }
 
-void ViewerWindow::termSignalHandler(int) {
+void ClientConsole::termSignalHandler(int) {
     char a = 1;
     write(sigTermSd[0], &a, sizeof(a));
 }
 
-void ViewerWindow::intSignalHandler(int) {
+void ClientConsole::intSignalHandler(int) {
     char a = 1;
     write(sigIntSd[0], &a, sizeof(a));
 }
 
-void ViewerWindow::handleSigHup() {
+void ClientConsole::handleSigHup() {
     //Desactivar la monitorizacion para que por el momento no lleguen mas señales de QT
     sigHupNotifier->setEnabled(false);
 
@@ -159,12 +159,25 @@ void ViewerWindow::handleSigHup() {
     read(sigHupSd[1], &tmp, sizeof(tmp));
 
     //CODIGO DE LA SEÑAL
+    qDebug() << "SigHup.";
+    sslSocket->disconnect();
+    sslSocket->deleteLater();
+
+    sslSocket = new QSslSocket(this);
+
+    qDebug() << "Intentando conexion";
+
+    sslSocket->connectToHostEncrypted(ipDir, nPort.toInt());
+    sslSocket->ignoreSslErrors();
+
+    connect(captureBuffer, SIGNAL(image_signal(QImage)), this, SLOT(image_slot(QImage)));
+    connect(sslSocket, SIGNAL(encrypted()), this, SLOT(connected()));
 
     //Activar de nuevo la monitorizacion
     sigHupNotifier->setEnabled(true);
 }
 
-void ViewerWindow::handleSigInt() {
+void ClientConsole::handleSigInt() {
     //Desactivar la monitorizacion para que por el momento no lleguen mas señales de QT
     sigIntNotifier->setEnabled(false);
 
@@ -173,6 +186,8 @@ void ViewerWindow::handleSigInt() {
     read(sigIntSd[1], &tmp, sizeof(tmp));
 
     //CODIGO DE LA SEÑAL
+    qDebug() << "trl + C, SigInt.";
+    qDebug() << "Cerrando conexion...";
     sslSocket->disconnect();
     QCoreApplication::quit();
 
@@ -180,7 +195,7 @@ void ViewerWindow::handleSigInt() {
     sigIntNotifier->setEnabled(true);
 }
 
-void ViewerWindow::handleSigTerm() {
+void ClientConsole::handleSigTerm() {
     //Desactivar la monitorizacion para que por el momento no lleguen mas señales de QT
     sigTermNotifier->setEnabled(false);
 
@@ -189,6 +204,8 @@ void ViewerWindow::handleSigTerm() {
     read(sigTermSd[1], &tmp, sizeof(tmp));
 
     //CODIGO DE LA SEÑAL
+    qDebug() << "SigTerm.";
+    qDebug() << "Cerrando aplicacion...";
     sslSocket->disconnect();
     QCoreApplication::quit();
 
@@ -203,7 +220,7 @@ int setupUnixSignalHandlers() {
     struct ::sigaction term_, hup_, int_;
 
     ///TERM
-    term_.sa_handler = &ViewerWindow::termSignalHandler;
+    term_.sa_handler = &ClientConsole::termSignalHandler;
 
     //Vaciamos la mascara para indicar que no queremos bloquear la
     //llegada de ninguna señal POSIX
@@ -219,7 +236,7 @@ int setupUnixSignalHandlers() {
     return 1;
 
     ///HUP
-    hup_.sa_handler = &ViewerWindow::hupSignalHandler;
+    hup_.sa_handler = &ClientConsole::hupSignalHandler;
     sigemptyset(&hup_.sa_mask);
     hup_.sa_flags = SA_RESTART;
 
@@ -228,7 +245,7 @@ int setupUnixSignalHandlers() {
     return 2;
 
     ///INT
-    int_.sa_handler = &ViewerWindow::intSignalHandler;
+    int_.sa_handler = &ClientConsole::intSignalHandler;
     sigemptyset(&int_.sa_mask);
     int_.sa_flags = SA_RESTART;
 

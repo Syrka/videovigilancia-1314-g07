@@ -16,15 +16,16 @@ CONFIG += console
 CONFIG -= app_bundle
 
 SOURCES += main.cpp\
-        viewerwindow.cpp \
     capturebuffer.cpp \
     svvprotocol.cpp \
-    motiondetector.cpp
+    motiondetector.cpp \
+    clientconsole.cpp
 
-HEADERS  += viewerwindow.h \
+HEADERS  += \
     capturebuffer.h \
     svvprotocol.h \
-    motiondetector.h
+    motiondetector.h \
+    clientconsole.h
 
 FORMS    +=
 

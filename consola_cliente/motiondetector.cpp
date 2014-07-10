@@ -22,13 +22,10 @@ MotionDetector::~MotionDetector() {
 
 void MotionDetector::detect_motion(const QImage &image) {
 
-    qDebug() << "Motion detector, procesando imagen...";
-
     QImage imageFormat = image.convertToFormat(QImage::Format_RGB32, Qt::ColorOnly);
     cv::Mat image_ = QtOcv::image2Mat(imageFormat);
 
     (*backgroundSubtractor)(image_, *foregroundMask);
-    //backgroundSubtractor->operator ()(image_, *foregroundMask);
 
     // Operaciones morfolóficas para eliminar las regiones de
     // pequeño tamaño. Erode() las encoge y dilate() las vuelve a
@@ -53,14 +50,12 @@ void MotionDetector::detect_motion(const QImage &image) {
     // P. ej. usar cv::boundingRect() para obtener el cuadro
     // delimitador de cada uno y pintarlo en la imagen original
 
-    //VRect.clear();
     for(ContoursType::const_iterator i = contours.begin(); i < contours.end(); ++i) {
         cv::Rect rect = cv::boundingRect(*i);
         QRect rect_(rect.x, rect.y, rect.width, rect.height);
         VRect.push_back(rect_);
     }
 
-    qDebug() << "Imagen procesada";
     emit processed_image(imageFormat, VRect);
     VRect.clear();
 }

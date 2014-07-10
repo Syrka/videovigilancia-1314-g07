@@ -32,7 +32,6 @@ bool SvvProtocol::sendPackage(QSslSocket *receptor, QImage &image, QVector<QRect
 
         //idcamera
         size_idcamera_ = idcamera_.size();
-        //qDebug()<<"tamaño idcamera: "<<size_idcamera_;
         size_idcamera_ = qToLittleEndian(size_idcamera_);
         receptor->write((const char *)&size_idcamera_, sizeof(quint32));  //tamaño id camara
         receptor->write((const char *)&idcamera_, size_idcamera_);  //id camara
@@ -46,20 +45,13 @@ bool SvvProtocol::sendPackage(QSslSocket *receptor, QImage &image, QVector<QRect
 
         ///enviamos la imagenidcamera_
         quint32 size_bytes_image = bytes_image.length();
-        //qDebug() << "Tamaño de la imagen: " << bytes_image.size();
         size_bytes_image = qToLittleEndian(size_bytes_image);
         receptor->write((const char*)&size_bytes_image, sizeof(quint32));//tamaño image
-        //qDebug() << "Enviando Imagen... ";
         bytes_image = qToLittleEndian(bytes_image);
         receptor->write(bytes_image, size_bytes_image);                 //image
 
-        //
-        //
-        //
-
         nRects = VRect.size();
         nRects = qToLittleEndian(nRects);
-            qDebug() << nRects;
         receptor->write((const char*)&nRects, sizeof(qint32));
 
         for (QVector<QRect>::const_iterator i = VRect.begin(); i < VRect.end(); ++i) {
@@ -77,7 +69,6 @@ bool SvvProtocol::sendPackage(QSslSocket *receptor, QImage &image, QVector<QRect
             height_ = qToLittleEndian(rect_.height());
             receptor->write((const char*)&height_, sizeof(qint32));
 
-            qDebug()<< "x" << x_ << "y" << y_ << "width" << width_ << "height" << height_;
         }
         return true;
     }
