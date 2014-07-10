@@ -160,18 +160,10 @@ void ClientConsole::handleSigHup() {
 
     //CODIGO DE LA SEÑAL
     qDebug() << "SigHup.";
+
     sslSocket->disconnect();
     sslSocket->deleteLater();
-
-    sslSocket = new QSslSocket(this);
-
-    qDebug() << "Intentando conexion";
-
-    sslSocket->connectToHostEncrypted(ipDir, nPort.toInt());
-    sslSocket->ignoreSslErrors();
-
-    connect(captureBuffer, SIGNAL(image_signal(QImage)), this, SLOT(image_slot(QImage)));
-    connect(sslSocket, SIGNAL(encrypted()), this, SLOT(connected()));
+    QCoreApplication::quit();
 
     //Activar de nuevo la monitorizacion
     sigHupNotifier->setEnabled(true);
