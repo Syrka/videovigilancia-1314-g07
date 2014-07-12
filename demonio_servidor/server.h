@@ -6,6 +6,8 @@
 #include <QFile>
 #include <QSslKey>
 #include <QSettings>
+#include <QApplication>
+
 #include "svvprotocol.h"
 
 class Server : public QTcpServer

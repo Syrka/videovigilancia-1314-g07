@@ -5,12 +5,12 @@
 #include <errno.h>
 #include <stdio.h>
 #include <syslog.h>
-//#include <fcntl.h>
-//#include <sys/types.h>
+#include <fcntl.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-//#include <pwd.h>
-//#include <grp.h>
+#include <pwd.h>
+#include <grp.h>
 #include <iostream>
 
 int main(int argc, char *argv[]) {
@@ -65,23 +65,46 @@ int main(int argc, char *argv[]) {
         exit(12);
     }
 
-    //Reabrir los descriptores estandar
+    // Cerrar los descriptores de la E/S estandar
+    close(STDIN_FILENO);            // fd 0
+    close(STDOUT_FILENO);           // fd 1
+
+    //Reabrir los descriptores pero mantenerlos conectados al archivo /dev/null
+    int fd0 = open("/dev/null", O_RDONLY);  // fd0 == 0
+    int fd1 = open("/dev/null", O_WRONLY);  // fd0 == 1
+    int fd2 = open("/dev/null", O_WRONLY);  // fd0 == 2
+
+    // Cambiar el usuario efectivo del proceso a 'midemonio'
+    passwd* user = getpwnam("midemonio");
+    seteuid(user->pw_uid);
+
+    // Cambiar el grupo efectivo del proceso a 'midemonio'
+    group* group = getgrnam("midemonio");
+    setegid(group->gr_gid);
 
     /// ...
 
     //Enviar un mensaje al demonio syslog
     syslog(LOG_NOTICE, "Demonio iniciado con exito\n");
 
-    /// ...
+    // Archivo que contiene identificador de proceso del demonio
+    QFile file("/var/run/midemoniod.pid");
+    QTextStream out(&file);
+    out << pid;
+    file.close();
 
+    /// ...
     QCoreApplication a(argc, argv);
     ViewerWindow w;
-    //w.show();
 
-    //
-    //Cuando el demonio termine, cerrar la conexion con el servicio syslog
-    ////closelog();
-    //
+    setupUnixSignalHandlers();
+
+    if(daemon){
+        QFile::remove("/var/run/midemoniod.pid");
+        // Cuando el demonio termine, cerrar la conexión con
+        // el servicio syslog
+        closelog();
+    }
 
     return a.exec();
 }

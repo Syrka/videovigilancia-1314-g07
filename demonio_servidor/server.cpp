@@ -1,5 +1,6 @@
 #include "server.h"
 #include "svvprotocol.h"
+
 Server::Server(QObject *parent) : QTcpServer(parent) {
 
     settings = new QSettings(APP_CONFDIR);
@@ -15,6 +16,7 @@ Server::~Server() {
 }
 
 void Server::incomingConnection(qintptr socketDescriptor) {
+
     QSslSocket *socket = new QSslSocket;
     if(socket->setSocketDescriptor(socketDescriptor)) {
         addPendingConnection(socket);
@@ -69,10 +71,11 @@ void Server::incomingConnection(qintptr socketDescriptor) {
         connect(protocol.last(), SIGNAL(ready_image(QImage,QVector<QRect>)), this, SLOT(incomingImage(QImage, QVector<QRect>)));
 
         //dynamic_cast<QSslSocket*>(sender()) es el que manda la señal
-        connect(emitters.last(), SIGNAL(disconnected()),    this,SLOT(disconnect()));    //disconected → disconect
-        qDebug() <<"connecting client signal disconnected to server slot disconnect";
-        connect(emitters.last(), SIGNAL(readyRead()),       this,SLOT(incoming()));     //readyRead   → incomingImage de cada socket
-        //qDebug() <<"connecting client signal readyRead to server slot incomingImage";
+        connect(emitters.last(), SIGNAL(disconnected()), this,
+                SLOT(disconnect()));    //disconected → disconect
+
+        connect(emitters.last(), SIGNAL(readyRead()), this,
+                SLOT(incoming()));     //readyRead   → incomingImage de cada socket
     }
 }
 

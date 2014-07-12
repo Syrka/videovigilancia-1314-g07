@@ -11,10 +11,12 @@ QT       += sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = visor_server
+TARGET = midemoniod
 TEMPLATE = app
+CONFIG += console
+CONFIG -= app_bundle
 
-#DESTDIR += /usr/bin
+#DESTDIR += /usr/sbin
 #Especifica el directorio donde colocar el binario una vez generado.
 
 SOURCES += main.cpp\
@@ -32,13 +34,14 @@ FORMS    +=
 
 unix {  # Esta configuración específica de Linux y UNIX
         # Variables
-    CONFIG += qt release
+    CONFIG += qt
     isEmpty(PREFIX) {
-        PREFIX = /usr/local
+        PREFIX = /usr
     }
-    BINDIR  = $$PREFIX/bin
+    BINDIR  = $$PREFIX/sbin
     DATADIR = $$PREFIX/share
     CONFDIR = /etc/$$TARGET
+    SCRIPT = /etc/init.d
     isEmpty(VARDIR) {
         VARDIR  = /var/lib/$$TARGET
     }
@@ -66,6 +69,10 @@ unix {  # Esta configuración específica de Linux y UNIX
     ## Crear directorio de archivos variables
     vardir.path = $$VARDIR
     vardir.commands = :
+
+    ## Script
+    script.path = $$SCRIPT
+    script.files += midemonio
 }
 
 win32{
