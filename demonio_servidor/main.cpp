@@ -68,6 +68,7 @@ int main(int argc, char *argv[]) {
     // Cerrar los descriptores de la E/S estandar
     close(STDIN_FILENO);            // fd 0
     close(STDOUT_FILENO);           // fd 1
+    close(STDERR_FILENO);           // fd 2
 
     //Reabrir los descriptores pero mantenerlos conectados al archivo /dev/null
     int fd0 = open("/dev/null", O_RDONLY);  // fd0 == 0
@@ -81,8 +82,6 @@ int main(int argc, char *argv[]) {
     // Cambiar el grupo efectivo del proceso a 'midemonio'
     group* group = getgrnam("midemonio");
     setegid(group->gr_gid);
-
-    /// ...
 
     //Enviar un mensaje al demonio syslog
     syslog(LOG_NOTICE, "Demonio iniciado con exito\n");
@@ -98,13 +97,6 @@ int main(int argc, char *argv[]) {
     ViewerWindow w;
 
     setupUnixSignalHandlers();
-
-    if(daemon){
-        QFile::remove("/var/run/midemoniod.pid");
-        // Cuando el demonio termine, cerrar la conexión con
-        // el servicio syslog
-        closelog();
-    }
 
     return a.exec();
 }

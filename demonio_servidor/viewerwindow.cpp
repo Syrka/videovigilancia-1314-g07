@@ -117,8 +117,6 @@ void ViewerWindow::save_images(const QImage &image) {
 
 void ViewerWindow::image_slot(const QImage &image, const QVector<QRect> &VRect) {
 
-    qDebug() << "HOLA_1";
-
     imageNum++;
     save_images(image);
 
@@ -136,9 +134,6 @@ void ViewerWindow::on_actionNetwork_capture_triggered() {
     //conectamos la señal new image al slot read_image
     connect(server,SIGNAL(new_image(QImage,QVector<QRect>)),this,
             SLOT(image_slot(QImage,QVector<QRect>)));
-    //connect(server,SIGNAL(new_image(QImage,QVector<QRect>)),this,SLOT(save_images(QImage)));
-
-    qDebug() << "HOLA";
 }
 
 // Manejadores de las señales SIGHUP, SIGTERM y SIGINT
@@ -187,9 +182,15 @@ void ViewerWindow::handleSigInt() {
     qDebug() << "trl + C, SigInt.";
     qDebug() << "Cerrando conexion...";
     server->disconnect();
-    //server_->deleteLater();
+
+    if(daemon){
+        QFile::remove("/var/run/midemoniod.pid");
+        // Cuando el demonio termine, cerrar la conexión con
+        // el servicio syslog
+        closelog();
+    }
+
     QCoreApplication::quit();
-    // deleteLater();
 
     //Activar de nuevo la monitorizacion
     sigIntNotifier->setEnabled(true);
@@ -207,9 +208,15 @@ void ViewerWindow::handleSigTerm() {
     qDebug() << "SigTerm.";
     qDebug() << "Cerrando aplicacion...";
     server->disconnect();
-    //server_->deleteLater();
+
+    if(daemon){
+        QFile::remove("/var/run/midemoniod.pid");
+        // Cuando el demonio termine, cerrar la conexión con
+        // el servicio syslog-
+        closelog();
+    }
+
     QCoreApplication::quit();
-    //deleteLater();
 
     //Activar de nuevo la monitorizacion
     sigTermNotifier->setEnabled(true);
