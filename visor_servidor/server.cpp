@@ -98,7 +98,6 @@ void Server::incoming(){
     int index = emitters.indexOf(qobject_cast<QSslSocket*>(sender()));
 
     if(index>=0 && emitters[index]->isReadable()){
-        qDebug()<<"Server.incomingImage";
         protocol[index]->recibePackage(emitters[index]);
     }
     else{

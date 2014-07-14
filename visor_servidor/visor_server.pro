@@ -38,7 +38,7 @@ FORMS    += viewerwindow.ui \
 
 unix {  # Esta configuración específica de Linux y UNIX
         # Variables
-    CONFIG += qt release
+    CONFIG += qt
     isEmpty(PREFIX) {
         PREFIX = /usr/local
     }

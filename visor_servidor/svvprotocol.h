@@ -47,6 +47,7 @@ private:
     qint32 nRects;
     QVector<QRect> VRect;
     QImage image_;
+    qint32 ultimoId_;
     int state_; //si 1→ espera Qstring de cabecera
                 //si 2→ espera tamaño idcamera
                 //si 3→ espera Qstring de idcamera

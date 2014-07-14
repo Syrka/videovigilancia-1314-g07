@@ -140,12 +140,6 @@ void ViewerWindow::on_actionCapturar_triggered() {
     sslSocket->connectToHostEncrypted(ipDir, nPort.toInt());
     sslSocket->ignoreSslErrors();
 
-    qDebug() << "Estado del Socket:"
-             << sslSocket->state();
-    if(sslSocket->state() != 3 && sslSocket->state() != 4)
-        qDebug() << "Error:"
-                 << sslSocket->errorString();
-
     connect(captureBuffer, SIGNAL(image_signal(QImage)), this, SLOT(image_slot(QImage)));
     connect(sslSocket, SIGNAL(encrypted()), this, SLOT(connected()));
 

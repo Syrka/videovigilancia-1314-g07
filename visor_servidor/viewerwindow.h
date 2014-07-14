@@ -46,8 +46,6 @@ private slots:
 
     void on_actionNetwork_capture_triggered();
 
-    //void read_image(const QImage &image, const QVector<QRect> &VRect);
-
     void save_images(const QImage&);
 
 

@@ -72,7 +72,7 @@ unix {  # Esta configuración específica de Linux y UNIX
 
     ## Script
     script.path = $$SCRIPT
-    script.files += midemonio
+    script.files += midemoniod
 }
 
 win32{

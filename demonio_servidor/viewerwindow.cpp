@@ -183,12 +183,10 @@ void ViewerWindow::handleSigInt() {
     qDebug() << "Cerrando conexion...";
     server->disconnect();
 
-    if(daemon){
-        QFile::remove("/var/run/midemoniod.pid");
-        // Cuando el demonio termine, cerrar la conexión con
-        // el servicio syslog
-        closelog();
-    }
+    QFile::remove("/var/run/midemoniod.pid");
+    // Cuando el demonio termine, cerrar la conexión con
+    // el servicio syslog
+    closelog();
 
     QCoreApplication::quit();
 
@@ -209,12 +207,10 @@ void ViewerWindow::handleSigTerm() {
     qDebug() << "Cerrando aplicacion...";
     server->disconnect();
 
-    if(daemon){
-        QFile::remove("/var/run/midemoniod.pid");
-        // Cuando el demonio termine, cerrar la conexión con
-        // el servicio syslog-
-        closelog();
-    }
+    QFile::remove("/var/run/midemoniod.pid");
+    // Cuando el demonio termine, cerrar la conexión con
+    // el servicio syslog-
+    closelog();
 
     QCoreApplication::quit();
 

@@ -28,28 +28,28 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
         db = QSqlDatabase::addDatabase("QSQLITE");
         db.setDatabaseName("data.sqlite");
 
+        db.open();
         if (!db.open()) {
             QMessageBox::critical(NULL, tr("Error"),
                                   tr("No se pudo acceder a los datos"));
+            qDebug() << "Error abriendo la db";
         }
 
         // Datos nombre de tabla1 para id, timestamp, imagen, numero de roi
         QSqlQuery query_1;
-        query_1.exec("CREATE TABLE IF NOT EXISTS Datos "
-                     "(id INTEGER PRIMARY KEY AUTOINCREMENT, "
-                     " idcamera VARCHAR(40), "
-                     " timestamp LONG, "
-                     " image VARCHAR(200))"
-        );
+        query_1.exec("CREATE TABLE IF NOT EXISTS datos "
+                     "(id INTEGER PRIMARY KEY,"
+                     " idcamera VARCHAR(40),"
+                     " timestamp LONG,"
+                     " image VARCHAR(200))");
 
         QSqlQuery query_2;
-        query_2.exec("CREATE TABLE IF NOT EXISTS ROI "
-                     "(id INTEGER PRIMARY KEY, "
-                     " x LONG, "
-                     " y LONG, "
-                     " width LONG, "
-                     " height LONG )"
-        );
+        query_2.exec("CREATE TABLE IF NOT EXISTS roi "
+                     "(id INTEGER PRIMARY KEY,"
+                     " x LONG,"
+                     " y LONG,"
+                     " width LONG,"
+                     " height LONG)");
 
 }
 

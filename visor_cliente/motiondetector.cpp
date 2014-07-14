@@ -22,8 +22,6 @@ MotionDetector::~MotionDetector() {
 
 void MotionDetector::detect_motion(const QImage &image) {
 
-    qDebug() << "Motion detector, procesando imagen...";
-
     QImage imageFormat = image.convertToFormat(QImage::Format_RGB32, Qt::ColorOnly);
     cv::Mat image_ = QtOcv::image2Mat(imageFormat);
 
@@ -60,7 +58,6 @@ void MotionDetector::detect_motion(const QImage &image) {
         VRect.push_back(rect_);
     }
 
-    qDebug() << "Imagen procesada";
     emit processed_image(imageFormat, VRect);
     VRect.clear();
 }
