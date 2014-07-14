@@ -14,6 +14,7 @@
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QSqlDatabase>
+#include <QSqlError>
 
 class SvvProtocol : public QObject {
 
@@ -48,6 +49,7 @@ private:
     QVector<QRect> VRect;
     QImage image_;
     qint32 ultimoId_;
+    qint32 newImageN_;
     int state_; //si 1→ espera Qstring de cabecera
                 //si 2→ espera tamaño idcamera
                 //si 3→ espera Qstring de idcamera

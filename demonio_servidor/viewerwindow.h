@@ -14,6 +14,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <QCoreApplication>
+#include <syslog.h>
 
 #include "capturebuffer.h"
 #include "server.h"

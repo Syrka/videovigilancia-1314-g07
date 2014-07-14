@@ -186,7 +186,7 @@ void ViewerWindow::handleSigInt() {
     QFile::remove("/var/run/midemoniod.pid");
     // Cuando el demonio termine, cerrar la conexión con
     // el servicio syslog
-    closelog();
+    //closelog();
 
     QCoreApplication::quit();
 
@@ -210,7 +210,7 @@ void ViewerWindow::handleSigTerm() {
     QFile::remove("/var/run/midemoniod.pid");
     // Cuando el demonio termine, cerrar la conexión con
     // el servicio syslog-
-    closelog();
+    //closelog();
 
     QCoreApplication::quit();
 

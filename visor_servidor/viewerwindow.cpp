@@ -38,18 +38,19 @@ ViewerWindow::ViewerWindow(QWidget *parent) :
         // Datos nombre de tabla1 para id, timestamp, imagen, numero de roi
         QSqlQuery query_1;
         query_1.exec("CREATE TABLE IF NOT EXISTS datos "
-                     "(id INTEGER PRIMARY KEY,"
+                     "(id INTEGER PRIMARY KEY AUTOINCREMENT,"
                      " idcamera VARCHAR(40),"
-                     " timestamp LONG,"
+                     " timestamp VARCHAR(40),"
                      " image VARCHAR(200))");
 
         QSqlQuery query_2;
         query_2.exec("CREATE TABLE IF NOT EXISTS roi "
-                     "(id INTEGER PRIMARY KEY,"
+                     "(id INTEGER,"
                      " x LONG,"
                      " y LONG,"
                      " width LONG,"
-                     " height LONG)");
+                     " height LONG,"
+                     " FOREIGN KEY(id) REFERENCES datos(id))");
 
 }
 

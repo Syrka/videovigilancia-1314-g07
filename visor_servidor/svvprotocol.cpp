@@ -63,6 +63,7 @@ QImage SvvProtocol::recibePackage(QSslSocket *emitter){
     quint32 idprotocol;
     QString bytes_toread;
     ultimoId_ =0;
+    newImageN_= 0;
 
     while(1){
         if(state_ == 1){
@@ -101,7 +102,7 @@ QImage SvvProtocol::recibePackage(QSslSocket *emitter){
                 idcamera_ = bytes_toread;
                 state_++;
             }
-            else {AUTOINCREMENT
+            else {
                 break;
             }
         }
@@ -151,24 +152,37 @@ QImage SvvProtocol::recibePackage(QSslSocket *emitter){
 
                 //////////////////////////////////////////////////////
 
+                QString time_string = timestamp_.toString();
+
+                QString imageName, aux;
+
+                imageName.setNum(newImageN_, 16);
+                imageName = aux.fill('0', 20 - imageName.length()) + imageName;
+
+                imageName = QString(APP_VARDIR) + "/" + imageName.mid(0,5)
+                                                        + "/" + imageName.mid(5,5)
+                                                        + "/" + imageName.mid(10,5)
+                                                        + "/" + imageName + ".jpeg";
+
+
                 QSqlQuery query;
-                //QSqlQuery("PRAGMA journal_mode = OFF");
-                //QSqlQuery("PRAGMA locking_mode = EXCLUSIVE");
-                //QSqlQuery("PRAGMA synchronous = OFF");
+                QSqlQuery("PRAGMA journal_mode = OFF");
+                QSqlQuery("PRAGMA locking_mode = EXCLUSIVE");
+                QSqlQuery("PRAGMA synchronous = OFF");
 
-                query.prepare("INSERT INTO datos (id, idcamera_, timestamp_, image_) "
-                              "VALUES (:id, :idcamera_, :timestamp_, :image_)");
+                query.prepare("INSERT INTO datos (idcamera, timestamp, image) "
+                              "VALUES (:idcamera, :timestamp, :image)");
 
-                query.bindValue(":id", ultimoId_);
-                query.bindValue(":idcamera_", idcamera_);
-                query.bindValue(":timestamp_", timestamp_);
-                query.bindValue(":image_", image_);
+                //query.bindValue(":id", ultimoId_);
+                query.bindValue(":idcamera", idcamera_);
+                query.bindValue(":timestamp", time_string);
+                query.bindValue(":image", imageName);
 
-                query.exec();
+                if ( ! query.exec() )
+                    qDebug() << "Error en la tabla Datos" << query.lastError();
 
                 ultimoId_ = query.lastInsertId().toInt();
-
-                /////////////////////////////////////////////////////////
+                newImageN_++;
 
             }
             else {
@@ -208,14 +222,11 @@ QImage SvvProtocol::recibePackage(QSslSocket *emitter){
                     rect_.setWidth(width_);
                     rect_.setHeight(height_);
 
-                    //////////////////////////////////////////////////////////////
-
                     QSqlQuery query2;
-                    query2.prepare("INSERT INTO roi (id, x, y, w, h) "
+                    query2.prepare("INSERT INTO roi (id, x, y, width, height) "
                                    "VALUES (:id, :x, :y, :w, :h)");
 
-                    qDebug()<<"Guardando link" << ultimoId_;
-                    query2.bindValue(":link", ultimoId_);
+                    query2.bindValue(":id", ultimoId_);
                     query2.bindValue(":x", x_);
                     query2.bindValue(":y", y_);
                     query2.bindValue(":w", width_);
@@ -223,54 +234,16 @@ QImage SvvProtocol::recibePackage(QSslSocket *emitter){
 
                     query2.exec();
 
-                    ultimoId_++;
-
-                    qDebug() << ultimoId_;
-                    qDebug() << "Stored values in database.";
-
-                    ////////////////////////////////////////////////////////////
+                    if (! query2.exec())
+                        qDebug() << "Error en la tabla ROI" << query2.lastError();
+                    else
+                        qDebug() << "Stored values in database.";
 
                     VRect.push_back(rect_);
                 }
                 emit ready_image(image_, VRect);
                 VRect.clear();
                 state_= 1;
-
-                ///////////////////////////////////////////////////////////////////////////////////
-
-                /*QSqlQuery query;
-                //QSqlQuery("PRAGMA journal_mode = OFF");
-                //QSqlQuery("PRAGMA locking_mode = EXCLUSIVE");
-                //QSqlQuery("PRAGMA synchronous = OFF");
-
-                query.prepare("INSERT INTO datos (idcamera_, timestamp_, image_) "
-                              "VALUES (:idcamera_, :timestamp_, :image_)");
-
-                query.bindValue(":idcamera_", idcamera_);
-                query.bindValue(":timestamp_", timestamp_);
-                query.bindValue(":image_", image_);
-
-                query.exec();
-
-                int ultimoId = query.lastInsertId().toInt();*/
-
-/*
-                    QSqlQuery query2;
-                    query2.prepare("INSERT INTO roi (link, x, y, w, h) "
-                                   "VALUES (:x, :y, :w, :h, :link)");
-
-                    query2.bindValue(":link", ultimoId);
-                    query2.bindValue(":x", rect.x());
-                    query2.bindValue(":y", rect.y());
-                    query2.bindValue(":w", rect.width());
-                    query2.bindValue(":h", rect.height());
-
-                    query2.exec();
-
-                }*/
-
-                ////////////////////////////////////////
-
             }
             else
                 break;
